@@ -55,14 +55,14 @@
                         android:padding="6dp">
 
                         <TextView
-                            android:id="@+id/textView2"
+                            android:id="@+id/exerciseTextView"
                             android:layout_width="142dp"
                             android:layout_height="wrap_content"
                             android:padding="6dp"
                             android:text="Abdominal Infra" />
 
                         <TextView
-                            android:id="@+id/textView4"
+                            android:id="@+id/seriesTextView"
                             android:layout_width="80dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
@@ -71,7 +71,7 @@
                             android:textAlignment="textEnd" />
 
                         <TextView
-                            android:id="@+id/textView5"
+                            android:id="@+id/repetitionsTextView"
                             android:layout_width="80dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
@@ -93,14 +93,14 @@
                         android:padding="6dp">
 
                         <TextView
-                            android:id="@+id/textView2"
+                            android:id="@+id/exerciseTextView"
                             android:layout_width="142dp"
                             android:layout_height="wrap_content"
                             android:padding="6dp"
                             android:text="Abdominal Infra" />
 
                         <TextView
-                            android:id="@+id/textView4"
+                            android:id="@+id/seriesTextView"
                             android:layout_width="80dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
@@ -109,7 +109,7 @@
                             android:textAlignment="textEnd" />
 
                         <TextView
-                            android:id="@+id/textView5"
+                            android:id="@+id/repetitionsTextView"
                             android:layout_width="80dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"

@@ -3,10 +3,14 @@ package com.example.academy;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -33,6 +37,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class MainActivity extends AppCompatActivity {
+    private LinearLayout workoutLayout;
     private Spinner workoutsSpinner;
     private Spinner exerciseSeriesSpinner;
 
@@ -53,6 +58,7 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
 
+        workoutLayout = findViewById(R.id.workoutLayout);
         workoutsSpinner = findViewById(R.id.workoutsSpinner);
         exerciseSeriesSpinner = findViewById(R.id.exerciseSeriesSpinner);
 
@@ -180,8 +186,52 @@ public class MainActivity extends AppCompatActivity {
         HashMap<String, Object> exercises = (HashMap<String, Object>) series.get(serieId);
 
         if (exercises != null) {
-            Toast.makeText(this, exercises.toString(), Toast.LENGTH_LONG).show();
+            workoutLayout.removeAllViews();
+            while (exercises.keySet().stream().count() > 0){
+                String exercise = exercises.keySet().stream().findFirst().orElse(null).toString();
+                HashMap<String, Object> exerciseData = (HashMap<String, Object>) exercises.get(exercise);
+                exercises.remove(exercise);
+
+                View exerciseCard = LayoutInflater.from(this).inflate(R.layout.card_item, workoutLayout, false);
+                LinearLayout exerciseCardLayout = exerciseCard.findViewById(R.id.exercisesLayout);
+
+                setupExerciseCard(exercise, exerciseData, exerciseCardLayout);
+                if (exerciseData.containsKey("Simultaneo")) {
+                    List<String> chainedExercises = (List<String>) exerciseData.get("Simultaneo");
+                    for (String chainedExercise : chainedExercises) {
+                        if (!exercises.containsKey(chainedExercise)) continue;
+
+                        HashMap<String, Object> chainedExerciseData = (HashMap<String, Object>) exercises.get(chainedExercise);
+                        exercises.remove(chainedExercise);
+
+                        ImageView chainImage = new ImageView(this);
+                        chainImage.setImageResource(R.drawable.unlink);
+                        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                                LinearLayout.LayoutParams.WRAP_CONTENT,
+                                LinearLayout.LayoutParams.WRAP_CONTENT
+                        );
+                        chainImage.setLayoutParams(params);
+                        exerciseCardLayout.addView(chainImage);
+                        setupExerciseCard(chainedExercise, chainedExerciseData, exerciseCardLayout);
+                    }
+                }
+                workoutLayout.addView(exerciseCard);
+            }
         }
+    }
+
+    private void setupExerciseCard(String exercise, HashMap<String, Object> exerciseData, LinearLayout layout) {
+        View exerciseCard = LayoutInflater.from(this).inflate(R.layout.card_exercise, layout, false);
+
+        TextView exerciseTextView = exerciseCard.findViewById(R.id.exerciseTextView);
+        TextView seriesTextView = exerciseCard.findViewById(R.id.seriesTextView);
+        TextView repetitionsTextView = exerciseCard.findViewById(R.id.repetitionsTextView);
+
+        exerciseTextView.setText(exercise);
+        seriesTextView.setText(exerciseData.get("Series").toString());
+        repetitionsTextView.setText(exerciseData.get("Quantidade").toString() + " " + exerciseData.get("Tipo").toString());
+
+        layout.addView(exerciseCard);
     }
 
 }
