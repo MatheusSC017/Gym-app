@@ -45,46 +45,6 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:orientation="horizontal"
-                    android:padding="6dp">
-
-                    <TextView
-                        android:id="@+id/textView2"
-                        android:layout_width="142dp"
-                        android:layout_height="wrap_content"
-                        android:padding="6dp"
-                        android:text="Abdominal Infra" />
-
-                    <TextView
-                        android:id="@+id/textView4"
-                        android:layout_width="80dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:padding="6dp"
-                        android:text="3 x"
-                        android:textAlignment="textEnd" />
-
-                    <TextView
-                        android:id="@+id/textView5"
-                        android:layout_width="80dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:padding="6dp"
-                        android:text="15 Repetições" />
-                </LinearLayout>
-
-            </androidx.cardview.widget.CardView>
-
-            <androidx.cardview.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_margin="8dp"
-                app:cardBackgroundColor="#D0D2E3"
-                app:cardCornerRadius="8dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
                     android:gravity="center"
                     android:orientation="vertical">
 
@@ -171,7 +131,6 @@
         android:layout_marginTop="6dp"
         android:layout_marginBottom="12dp"
         android:padding="8dp"
-        android:spinnerMode="dialog"
         app:layout_constraintBottom_toTopOf="@+id/exerciseSeriesSpinner"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
