@@ -1,8 +1,6 @@
 package com.example.academy;
 
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
@@ -19,8 +17,6 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -34,7 +30,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 public class MainActivity extends AppCompatActivity {
     private LinearLayout workoutLayout;
@@ -185,27 +180,30 @@ public class MainActivity extends AppCompatActivity {
 
         HashMap<String, Object> exercises = (HashMap<String, Object>) series.get(serieId);
 
-        if (exercises != null) {
-            workoutLayout.removeAllViews();
-            while (exercises.keySet().stream().count() > 0){
-                String exercise = exercises.keySet().stream().findFirst().orElse(null).toString();
-                HashMap<String, Object> exerciseData = (HashMap<String, Object>) exercises.get(exercise);
-                exercises.remove(exercise);
 
-                View exerciseCard = LayoutInflater.from(this).inflate(R.layout.card_item, workoutLayout, false);
+        if (exercises != null) {
+            HashMap<String, Object> exercisesCopy = new HashMap<String, Object>(exercises);
+
+            workoutLayout.removeAllViews();
+            while (exercisesCopy.keySet().stream().count() > 0){
+                String exercise = exercisesCopy.keySet().stream().findFirst().orElse(null).toString();
+                HashMap<String, Object> exerciseData = (HashMap<String, Object>) exercisesCopy.get(exercise);
+                exercisesCopy.remove(exercise);
+
+                View exerciseCard = LayoutInflater.from(this).inflate(R.layout.item_card, workoutLayout, false);
                 LinearLayout exerciseCardLayout = exerciseCard.findViewById(R.id.exercisesLayout);
 
                 setupExerciseCard(exercise, exerciseData, exerciseCardLayout);
                 if (exerciseData.containsKey("Simultaneo")) {
                     List<String> chainedExercises = (List<String>) exerciseData.get("Simultaneo");
                     for (String chainedExercise : chainedExercises) {
-                        if (!exercises.containsKey(chainedExercise)) continue;
+                        if (!exercisesCopy.containsKey(chainedExercise)) continue;
 
-                        HashMap<String, Object> chainedExerciseData = (HashMap<String, Object>) exercises.get(chainedExercise);
-                        exercises.remove(chainedExercise);
+                        HashMap<String, Object> chainedExerciseData = (HashMap<String, Object>) exercisesCopy.get(chainedExercise);
+                        exercisesCopy.remove(chainedExercise);
 
                         ImageView chainImage = new ImageView(this);
-                        chainImage.setImageResource(R.drawable.unlink);
+                        chainImage.setImageResource(R.drawable.link);
                         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                                 LinearLayout.LayoutParams.WRAP_CONTENT,
                                 LinearLayout.LayoutParams.WRAP_CONTENT
@@ -221,7 +219,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setupExerciseCard(String exercise, HashMap<String, Object> exerciseData, LinearLayout layout) {
-        View exerciseCard = LayoutInflater.from(this).inflate(R.layout.card_exercise, layout, false);
+        View exerciseCard = LayoutInflater.from(this).inflate(R.layout.exercise_card, layout, false);
 
         TextView exerciseTextView = exerciseCard.findViewById(R.id.exerciseTextView);
         TextView seriesTextView = exerciseCard.findViewById(R.id.seriesTextView);

@@ -5,157 +5,165 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/running_background"
+    android:backgroundTint="#D4D6CE"
     tools:context=".MainActivity">
+
+
+    <LinearLayout
+        android:id="@+id/linearLayout"
+        android:layout_width="match_parent"
+        android:layout_height="130dp"
+        android:gravity="start|center_vertical"
+        android:orientation="horizontal"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:layout_editor_absoluteX="1dp">
+
+        <LinearLayout
+            android:layout_width="300dp"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <Spinner
+                android:id="@+id/workoutsSpinner"
+                android:layout_width="250dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="12dp"
+                android:padding="8dp" />
+
+            <Spinner
+                android:id="@+id/exerciseSeriesSpinner"
+                android:layout_width="250dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="0dp"
+                android:padding="8dp" />
+        </LinearLayout>
+
+        <ImageView
+            android:id="@+id/haltereIcon"
+            android:layout_width="70dp"
+            android:layout_height="70dp"
+            android:backgroundTint="#D0D2E3"
+            android:contentDescription="Haltere Icon"
+            app:srcCompat="@drawable/haltere" />
+
+    </LinearLayout>
+
+    <ScrollView
+        android:id="@+id/workoutScroll"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+    </ScrollView>
+
+    <LinearLayout
+        android:id="@+id/workoutLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintTop_toBottomOf="@+id/divider"
+        tools:layout_editor_absoluteX="-16dp">
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_margin="8dp"
+            app:cardBackgroundColor="#D0D2E3"
+            app:cardCornerRadius="8dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="horizontal"
+                    android:padding="6dp">
+
+                    <TextView
+                        android:id="@+id/exerciseTextView"
+                        android:layout_width="142dp"
+                        android:layout_height="wrap_content"
+                        android:padding="6dp"
+                        android:text="Abdominal Infra" />
+
+                    <TextView
+                        android:id="@+id/seriesTextView"
+                        android:layout_width="80dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:padding="6dp"
+                        android:text="3 x"
+                        android:textAlignment="textEnd" />
+
+                    <TextView
+                        android:id="@+id/repetitionsTextView"
+                        android:layout_width="80dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:padding="6dp"
+                        android:text="15 Repetições" />
+
+                </LinearLayout>
+
+                <ImageView
+                    android:id="@+id/linkIcon"
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    tools:srcCompat="@drawable/link" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="horizontal"
+                    android:padding="6dp">
+
+                    <TextView
+                        android:id="@+id/exerciseTextView"
+                        android:layout_width="142dp"
+                        android:layout_height="wrap_content"
+                        android:padding="6dp"
+                        android:text="Abdominal Infra" />
+
+                    <TextView
+                        android:id="@+id/seriesTextView"
+                        android:layout_width="80dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:padding="6dp"
+                        android:text="3 x"
+                        android:textAlignment="textEnd" />
+
+                    <TextView
+                        android:id="@+id/repetitionsTextView"
+                        android:layout_width="80dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:padding="6dp"
+                        android:text="15 Repetições" />
+                </LinearLayout>
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+    </LinearLayout>
 
     <View
         android:id="@+id/divider"
         android:layout_width="409dp"
         android:layout_height="1dp"
-        android:layout_marginStart="2dp"
-        android:layout_marginTop="6dp"
-        android:layout_marginEnd="2dp"
         android:background="?android:attr/listDivider"
-        app:layout_constraintBottom_toTopOf="@+id/scrollView2"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/exerciseSeriesSpinner" />
-
-    <ScrollView
-        android:id="@+id/scrollView2"
-        android:layout_width="412dp"
-        android:layout_height="600dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/divider">
-
-        <LinearLayout
-            android:id="@+id/workoutLayout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-
-            <androidx.cardview.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_margin="8dp"
-                app:cardBackgroundColor="#D0D2E3"
-                app:cardCornerRadius="8dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:gravity="center"
-                    android:orientation="vertical">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:orientation="horizontal"
-                        android:padding="6dp">
-
-                        <TextView
-                            android:id="@+id/exerciseTextView"
-                            android:layout_width="142dp"
-                            android:layout_height="wrap_content"
-                            android:padding="6dp"
-                            android:text="Abdominal Infra" />
-
-                        <TextView
-                            android:id="@+id/seriesTextView"
-                            android:layout_width="80dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:padding="6dp"
-                            android:text="3 x"
-                            android:textAlignment="textEnd" />
-
-                        <TextView
-                            android:id="@+id/repetitionsTextView"
-                            android:layout_width="80dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:padding="6dp"
-                            android:text="15 Repetições" />
-
-                    </LinearLayout>
-
-                    <ImageView
-                        android:id="@+id/unlinkIcon"
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
-                        tools:srcCompat="@drawable/unlink" />
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:orientation="horizontal"
-                        android:padding="6dp">
-
-                        <TextView
-                            android:id="@+id/exerciseTextView"
-                            android:layout_width="142dp"
-                            android:layout_height="wrap_content"
-                            android:padding="6dp"
-                            android:text="Abdominal Infra" />
-
-                        <TextView
-                            android:id="@+id/seriesTextView"
-                            android:layout_width="80dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:padding="6dp"
-                            android:text="3 x"
-                            android:textAlignment="textEnd" />
-
-                        <TextView
-                            android:id="@+id/repetitionsTextView"
-                            android:layout_width="80dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:padding="6dp"
-                            android:text="15 Repetições" />
-                    </LinearLayout>
-                </LinearLayout>
-
-            </androidx.cardview.widget.CardView>
-
-        </LinearLayout>
-    </ScrollView>
-
-    <Spinner
-        android:id="@+id/workoutsSpinner"
-        android:layout_width="250dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="6dp"
-        android:layout_marginTop="6dp"
-        android:layout_marginBottom="12dp"
-        android:padding="8dp"
-        app:layout_constraintBottom_toTopOf="@+id/exerciseSeriesSpinner"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <Spinner
-        android:id="@+id/exerciseSeriesSpinner"
-        android:layout_width="250dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="6dp"
-        android:layout_marginTop="12dp"
-        android:layout_marginBottom="6dp"
-        android:padding="8dp"
-        app:layout_constraintBottom_toTopOf="@+id/divider"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/workoutsSpinner" />
-
-    <ImageView
-        android:id="@+id/imageView"
-        android:layout_width="70dp"
-        android:layout_height="70dp"
-        android:contentDescription="Icon Gym"
-        app:layout_constraintBottom_toTopOf="@+id/divider"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/workoutsSpinner"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:srcCompat="@drawable/haltere" />
+        app:layout_constraintTop_toBottomOf="@+id/linearLayout"
+        tools:layout_editor_absoluteX="1dp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
