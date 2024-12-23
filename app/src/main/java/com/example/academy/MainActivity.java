@@ -1,5 +1,12 @@
 package com.example.academy;
 
+import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.widget.Toolbar;
+import androidx.drawerlayout.widget.DrawerLayout;
+
+import com.google.android.material.navigation.NavigationView;
+
+
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -32,6 +39,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class MainActivity extends AppCompatActivity {
+    DrawerLayout drawerLayout;
+    ActionBarDrawerToggle actionBarDrawerToggle;
+    NavigationView navigationView;
+
     private LinearLayout workoutLayout;
     private Spinner workoutsSpinner;
     private Spinner exerciseSeriesSpinner;
@@ -46,8 +57,10 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
+        setUpToolbar();
+        navigationView = (NavigationView) findViewById(R.id.navigation_menu);
 
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.drawerLayout), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
@@ -62,7 +75,16 @@ public class MainActivity extends AppCompatActivity {
         setupWorkoutSpinner();
     }
 
-    private void loadJsonData() {
+    public void setUpToolbar() {
+        drawerLayout = findViewById(R.id.drawerLayout);
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        actionBarDrawerToggle = new ActionBarDrawerToggle(this, drawerLayout, toolbar, R.string.app_name, R.string.app_name);
+        drawerLayout.addDrawerListener(actionBarDrawerToggle);
+        actionBarDrawerToggle.syncState();
+    }
+
+    public void loadJsonData() {
         try {
             InputStream inputStream = getAssets().open("workout.json");
             int size = inputStream.available();
@@ -81,7 +103,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private static Object convertFromJson(Object json) throws JSONException {
+    public static Object convertFromJson(Object json) throws JSONException {
         if (json == JSONObject.NULL) {
             return null;
         } else if (json instanceof JSONObject) {
@@ -203,7 +225,7 @@ public class MainActivity extends AppCompatActivity {
                         exercisesCopy.remove(chainedExercise);
 
                         ImageView chainImage = new ImageView(this);
-                        chainImage.setImageResource(R.drawable.link);
+                        chainImage.setImageResource(R.drawable.ic_link_16);
                         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                                 LinearLayout.LayoutParams.WRAP_CONTENT,
                                 LinearLayout.LayoutParams.WRAP_CONTENT

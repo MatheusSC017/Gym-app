@@ -41,4 +41,7 @@ dependencies {
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
     implementation("com.fasterxml.jackson.core:jackson-databind:2.10.1")
+    implementation("androidx.navigation:navigation-ui:2.8.5")
+    implementation("androidx.navigation:navigation-fragment:2.8.5")
+    implementation("com.google.android.material:material:1.12.0")
 }
