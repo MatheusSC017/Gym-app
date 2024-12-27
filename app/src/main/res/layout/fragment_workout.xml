@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".WorkoutFragment">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:id="@+id/linearLayout"
+            android:layout_width="match_parent"
+            android:layout_height="144dp"
+            android:gravity="start|center_vertical"
+            android:orientation="horizontal"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:layout_editor_absoluteX="1dp">
+
+            <LinearLayout
+                android:layout_width="300dp"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+
+                <Spinner
+                    android:id="@+id/workoutsSpinner"
+                    android:layout_width="250dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:layout_marginTop="12dp"
+                    android:layout_marginBottom="12dp"
+                    android:minHeight="48dp"
+                    android:padding="8dp" />
+
+                <Spinner
+                    android:id="@+id/exerciseSeriesSpinner"
+                    android:layout_width="250dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:layout_marginTop="12dp"
+                    android:layout_marginBottom="0dp"
+                    android:minHeight="48dp"
+                    android:padding="8dp" />
+            </LinearLayout>
+
+            <ImageView
+                android:id="@+id/haltereIcon"
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:backgroundTint="@color/primary"
+                android:contentDescription="Haltere Icon"
+                app:srcCompat="@drawable/ic_haltere_70" />
+
+        </LinearLayout>
+
+        <View
+            android:id="@+id/divider"
+            android:layout_width="409dp"
+            android:layout_height="1dp"
+            android:background="?android:attr/listDivider"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/linearLayout" />
+
+        <ScrollView
+            android:id="@+id/workoutScroll"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/divider">
+
+            <LinearLayout
+                android:id="@+id/workoutLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                app:layout_constraintTop_toBottomOf="@+id/divider" />
+
+        </ScrollView>
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</FrameLayout>

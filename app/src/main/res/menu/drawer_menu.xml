@@ -1,24 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <group android:checkableBehavior="single"
-        android:id="@+id/group1">
+    <group android:checkableBehavior="single">
         <item
-            android:id="@+id/nav_home"
+            android:id="@+id/history"
             android:icon="@drawable/ic_home_24"
             android:title="Home">
         </item>
-        <item android:id="@+id/nav_personal"
+        <item android:id="@+id/personal"
             android:icon="@drawable/ic_personal_24"
             android:title="Pessoal">
         </item>
-        <item android:id="@+id/nav_workouts"
+        <item android:id="@+id/workouts"
             android:icon="@drawable/ic_haltere_24"
             android:title="Treinos">
         </item>
-        <item android:id="@+id/nav_finance"
+        <item android:id="@+id/finance"
             android:icon="@drawable/ic_cash_24"
             android:title="Finanças">
         </item>
-        </group>
-
+    </group>
 </menu>

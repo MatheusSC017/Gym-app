@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/historyFragment">
+
+    <fragment
+        android:id="@+id/historyFragment"
+        android:name="com.example.academy.HistoryFragment"
+        android:label="fragment_history"
+        tools:layout="@layout/fragment_history" >
+        <action
+            android:id="@+id/action_historyFragment_to_financeFragment"
+            app:destination="@id/financeFragment" />
+        <action
+            android:id="@+id/action_historyFragment_to_personalFragment"
+            app:destination="@id/personalFragment" />
+        <action
+            android:id="@+id/action_historyFragment_to_workoutFragment"
+            app:destination="@id/workoutFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/financeFragment"
+        android:name="com.example.academy.FinanceFragment"
+        android:label="fragment_finance"
+        tools:layout="@layout/fragment_finance" >
+        <action
+            android:id="@+id/action_financeFragment_to_historyFragment"
+            app:destination="@id/historyFragment" />
+        <action
+            android:id="@+id/action_financeFragment_to_personalFragment"
+            app:destination="@id/personalFragment" />
+        <action
+            android:id="@+id/action_financeFragment_to_workoutFragment"
+            app:destination="@id/workoutFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/workoutFragment"
+        android:name="com.example.academy.WorkoutFragment"
+        android:label="workoutFragment" >
+        <action
+            android:id="@+id/action_workoutFragment_to_historyFragment"
+            app:destination="@id/historyFragment" />
+        <action
+            android:id="@+id/action_workoutFragment_to_personalFragment"
+            app:destination="@id/personalFragment" />
+        <action
+            android:id="@+id/action_workoutFragment_to_financeFragment"
+            app:destination="@id/financeFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/personalFragment"
+        android:name="com.example.academy.PersonalFragment"
+        android:label="fragment_personal"
+        tools:layout="@layout/fragment_personal" >
+        <action
+            android:id="@+id/action_personalFragment_to_historyFragment"
+            app:destination="@id/historyFragment" />
+        <action
+            android:id="@+id/action_personalFragment_to_financeFragment"
+            app:destination="@id/financeFragment" />
+        <action
+            android:id="@+id/action_personalFragment_to_workoutFragment"
+            app:destination="@id/workoutFragment" />
+    </fragment>
+</navigation>

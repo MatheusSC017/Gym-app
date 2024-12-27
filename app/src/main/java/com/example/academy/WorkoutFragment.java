@@ -1,0 +1,237 @@
+package com.example.academy;
+
+import android.content.Context;
+import android.os.Bundle;
+
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.Spinner;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.stream.Collectors;
+
+
+public class WorkoutFragment extends Fragment {
+    private LinearLayout workoutLayout;
+    private Spinner workoutsSpinner;
+    private Spinner exerciseSeriesSpinner;
+
+    private List<String> workoutsIds = new ArrayList<>();
+    private List<String> seriesIds = new ArrayList<>();
+    private JSONObject workoutsJson;
+    private HashMap<String, Object> workoutsMap;
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.fragment_workout, container, false);
+
+        workoutLayout = view.findViewById(R.id.workoutLayout);
+        workoutsSpinner = view.findViewById(R.id.workoutsSpinner);
+        exerciseSeriesSpinner = view.findViewById(R.id.exerciseSeriesSpinner);
+
+        loadJsonData();
+        saveToInternalStorage("workouts", workoutsJson);
+        setupWorkoutSpinner();
+
+        return view;
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+    }
+
+    public void loadJsonData() {
+        try {
+            InputStream inputStream = getContext().getAssets().open("workout.json");
+            int size = inputStream.available();
+            byte[] buffer = new byte[size];
+            inputStream.read(buffer);
+            inputStream.close();
+            String json = new String(buffer, StandardCharsets.UTF_8);
+
+            workoutsJson = new JSONObject(json);
+            workoutsMap = (HashMap<String, Object>) convertFromJson(workoutsJson);
+            if (workoutsMap != null) {
+                workoutsIds = workoutsMap.keySet().stream().collect(Collectors.toList());
+            }
+        } catch (Exception e) {
+            Toast.makeText(requireContext(), "Error loading JSON: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
+    }
+
+    public static Object convertFromJson(Object json) throws JSONException {
+        if (json == JSONObject.NULL) {
+            return null;
+        } else if (json instanceof JSONObject) {
+            return toMap((JSONObject) json);
+        } else if (json instanceof JSONArray) {
+            return toList((JSONArray) json);
+        } else {
+            return json;
+        }
+    }
+
+    public static HashMap<String, Object> toMap(JSONObject object) throws JSONException {
+        HashMap<String, Object> map = new HashMap<>();
+        Iterator<String> keys = object.keys();
+        while (keys.hasNext()) {
+            String key = (String) keys.next();
+            map.put(key, convertFromJson(object.get(key)));
+        }
+        return map;
+    }
+
+    public static ArrayList<Object> toList(JSONArray array) throws JSONException {
+        ArrayList<Object> list = new ArrayList<>();
+        for (int i = 0; i < array.length(); i++) {
+            list.add(convertFromJson(array.get(i)));
+        }
+        return list;
+    }
+
+    private void saveToInternalStorage(String fileName, JSONObject jsonData) {
+        Context context = getContext();
+        try (FileOutputStream fos = context.openFileOutput(fileName, context.MODE_PRIVATE)) {
+            fos.write(jsonData.toString().getBytes());
+            Toast.makeText(requireContext(), "File saved!", Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            Toast.makeText(requireContext(), "Error saving file: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void setupWorkoutSpinner() {
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item, workoutsIds);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        workoutsSpinner.setAdapter(adapter);
+
+        workoutsSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                setupExerciseSeriesSpinner(workoutsIds.get(position));
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                // Do nothing
+            }
+        });
+    }
+
+    private void setupExerciseSeriesSpinner(String workoutId) {
+        try {
+            seriesIds.clear();
+            HashMap<String, Object> workout = (HashMap<String, Object>) workoutsMap.get(workoutId);
+
+            if (workout != null) {
+                HashMap<String, Object> series = (HashMap<String, Object>) workout.get("Series");
+                if (series != null) {
+                    seriesIds = series.keySet().stream().collect(Collectors.toList());
+                    Collections.reverse(seriesIds);
+                }
+            }
+        } catch (Exception e) {
+            Toast.makeText(getContext(), "Error loading Series: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item, seriesIds);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        exerciseSeriesSpinner.setAdapter(adapter);
+
+        exerciseSeriesSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                setupExercisesCards(workoutId, seriesIds.get(position));
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+                // Do nothing
+            }
+        });
+    }
+
+    private void setupExercisesCards(String workoutId, String serieId) {
+        HashMap<String, Object> workout = (HashMap<String, Object>) workoutsMap.get(workoutId);
+        if (workout == null) return;
+
+        HashMap<String, Object> series = (HashMap<String, Object>) workout.get("Series");
+        if (series == null) return;
+
+        HashMap<String, Object> exercises = (HashMap<String, Object>) series.get(serieId);
+
+
+        if (exercises != null) {
+            HashMap<String, Object> exercisesCopy = new HashMap<String, Object>(exercises);
+
+            workoutLayout.removeAllViews();
+            while (exercisesCopy.keySet().stream().count() > 0){
+                String exercise = exercisesCopy.keySet().stream().findFirst().orElse(null).toString();
+                HashMap<String, Object> exerciseData = (HashMap<String, Object>) exercisesCopy.get(exercise);
+                exercisesCopy.remove(exercise);
+
+                View exerciseCard = LayoutInflater.from(getContext()).inflate(R.layout.workout_card, workoutLayout, false);
+                LinearLayout exerciseCardLayout = exerciseCard.findViewById(R.id.exercisesLayout);
+
+                setupExerciseCard(exercise, exerciseData, exerciseCardLayout);
+                if (exerciseData.containsKey("Simultaneo")) {
+                    List<String> chainedExercises = (List<String>) exerciseData.get("Simultaneo");
+                    for (String chainedExercise : chainedExercises) {
+                        if (!exercisesCopy.containsKey(chainedExercise)) continue;
+
+                        HashMap<String, Object> chainedExerciseData = (HashMap<String, Object>) exercisesCopy.get(chainedExercise);
+                        exercisesCopy.remove(chainedExercise);
+
+                        ImageView chainImage = new ImageView(getContext());
+                        chainImage.setImageResource(R.drawable.ic_link_16);
+                        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                                LinearLayout.LayoutParams.WRAP_CONTENT,
+                                LinearLayout.LayoutParams.WRAP_CONTENT
+                        );
+                        chainImage.setLayoutParams(params);
+                        exerciseCardLayout.addView(chainImage);
+                        setupExerciseCard(chainedExercise, chainedExerciseData, exerciseCardLayout);
+                    }
+                }
+                workoutLayout.addView(exerciseCard);
+            }
+        }
+    }
+
+    private void setupExerciseCard(String exercise, HashMap<String, Object> exerciseData, LinearLayout layout) {
+        View exerciseCard = LayoutInflater.from(getContext()).inflate(R.layout.exercise_layout, layout, false);
+
+        TextView exerciseTextView = exerciseCard.findViewById(R.id.exerciseTextView);
+        TextView seriesTextView = exerciseCard.findViewById(R.id.seriesTextView);
+        TextView repetitionsTextView = exerciseCard.findViewById(R.id.repetitionsTextView);
+
+        exerciseTextView.setText(exercise);
+        seriesTextView.setText(exerciseData.get("Series").toString());
+        repetitionsTextView.setText(exerciseData.get("Quantidade").toString() + " " + exerciseData.get("Tipo").toString());
+
+        layout.addView(exerciseCard);
+    }
+
+}

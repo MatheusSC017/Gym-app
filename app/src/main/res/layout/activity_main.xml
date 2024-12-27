@@ -7,99 +7,41 @@
     android:layout_height="match_parent"
     android:id="@+id/drawerLayout"
     android:fitsSystemWindows="true"
-    android:background="#F7FFFFFF"
-    android:minWidth="19dp"
+    android:background="@color/white"
     tools:context=".MainActivity">
 
-    <ScrollView
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="128dp"
-        android:background="#FFFFFF">
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginTop="24dp">
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/secondary"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+        </androidx.appcompat.widget.Toolbar>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
-
-            <androidx.appcompat.widget.Toolbar
-                android:id="@+id/toolbar"
+            app:layout_constraintTop_toBottomOf="@+id/toolbar"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+            <FrameLayout
+                android:id="@+id/container"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="#D3D5D5"
-                android:minHeight="?attr/actionBarSize"
-                android:theme="?attr/actionBarTheme" />
-
-            <LinearLayout
-                android:id="@+id/linearLayout"
-                android:layout_width="match_parent"
-                android:layout_height="130dp"
-                android:gravity="start|center_vertical"
-                android:orientation="horizontal"
-                app:layout_constraintTop_toTopOf="parent"
-                tools:layout_editor_absoluteX="1dp">
-
-                <LinearLayout
-                    android:layout_width="300dp"
-                    android:layout_height="match_parent"
-                    android:orientation="vertical">
-
-                    <Spinner
-                        android:id="@+id/workoutsSpinner"
-                        android:layout_width="250dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="6dp"
-                        android:layout_marginTop="12dp"
-                        android:layout_marginBottom="12dp"
-                        android:padding="8dp" />
-
-                    <Spinner
-                        android:id="@+id/exerciseSeriesSpinner"
-                        android:layout_width="250dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="6dp"
-                        android:layout_marginTop="12dp"
-                        android:layout_marginBottom="0dp"
-                        android:padding="8dp" />
-                </LinearLayout>
-
-                <ImageView
-                    android:id="@+id/haltereIcon"
-                    android:layout_width="70dp"
-                    android:layout_height="70dp"
-                    android:backgroundTint="#D0D2E3"
-                    android:contentDescription="Haltere Icon"
-                    app:srcCompat="@drawable/ic_haltere_70" />
-
-            </LinearLayout>
-
-            <View
-                android:id="@+id/divider"
-                android:layout_width="409dp"
-                android:layout_height="1dp"
-                android:background="?android:attr/listDivider"
-                app:layout_constraintTop_toBottomOf="@+id/linearLayout"
-                tools:layout_editor_absoluteX="1dp" />
-
-            <ScrollView
-                android:id="@+id/workoutScroll"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent">
-
-                <LinearLayout
-                    android:id="@+id/workoutLayout"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    app:layout_constraintTop_toBottomOf="@+id/divider"
-                    tools:layout_editor_absoluteX="-16dp" />
-
-            </ScrollView>
-
+                app:layout_constraintBottom_toBottomOf="@+id/toolbar"
+                app:layout_constraintStart_toStartOf="parent"/>
         </LinearLayout>
-    </ScrollView>
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <com.google.android.material.navigation.NavigationView
         android:id="@+id/navigation_menu"
