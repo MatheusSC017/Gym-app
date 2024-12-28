@@ -149,7 +149,7 @@ public class WorkoutFragment extends Fragment {
                 HashMap<String, Object> series = (HashMap<String, Object>) workout.get("Series");
                 if (series != null) {
                     seriesIds = series.keySet().stream().collect(Collectors.toList());
-                    Collections.reverse(seriesIds);
+                    Collections.sort(seriesIds);
                 }
             }
         } catch (Exception e) {
@@ -181,7 +181,6 @@ public class WorkoutFragment extends Fragment {
         if (series == null) return;
 
         HashMap<String, Object> exercises = (HashMap<String, Object>) series.get(serieId);
-
 
         if (exercises != null) {
             HashMap<String, Object> exercisesCopy = new HashMap<String, Object>(exercises);
@@ -228,9 +227,10 @@ public class WorkoutFragment extends Fragment {
         TextView repetitionsTextView = exerciseCard.findViewById(R.id.repetitionsTextView);
 
         exerciseTextView.setText(exercise);
-        seriesTextView.setText(exerciseData.get("Series").toString());
-        repetitionsTextView.setText(exerciseData.get("Quantidade").toString() + " " + exerciseData.get("Tipo").toString());
+        String series = exerciseData.getOrDefault("Series", "1").toString();
+        if (!series.equals("1")) seriesTextView.setText(series);
 
+        repetitionsTextView.setText(exerciseData.getOrDefault("Quantidade", "").toString() + " " + exerciseData.getOrDefault("Tipo", "").toString());
         layout.addView(exerciseCard);
     }
 
