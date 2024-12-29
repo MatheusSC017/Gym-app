@@ -7,14 +7,15 @@
     android:layout_height="match_parent"
     android:id="@+id/drawerLayout"
     android:fitsSystemWindows="true"
-    android:background="@color/white"
+    android:background="@drawable/bg_running_500"
     tools:context=".MainActivity">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:layout_marginTop="24dp">
+        android:layout_marginTop="24dp"
+        android:layout_marginBottom="24dp">
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"

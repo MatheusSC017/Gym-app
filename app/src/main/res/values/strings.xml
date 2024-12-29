@@ -1,6 +1,8 @@
 <resources>
     <string name="app_name">Academy</string>
-    <!-- TODO: Remove or change this placeholder text -->
     <string name="nav_open">Open</string>
     <string name="nav_close">Close</string>
+    <string name="workout_date">Data de inicio do treino</string>
+    <string name="add_serie">Adicionar serie de treinamento</string>
+    <string name="add_exercise">Adicionar exercicio</string>
 </resources>

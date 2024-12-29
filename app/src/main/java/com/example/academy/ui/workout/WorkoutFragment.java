@@ -1,4 +1,4 @@
-package com.example.academy;
+package com.example.academy.ui.workout;
 
 import android.content.Context;
 import android.os.Bundle;
@@ -11,21 +11,26 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.academy.MainActivity;
+import com.example.academy.R;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -33,12 +38,17 @@ import java.util.stream.Collectors;
 
 
 public class WorkoutFragment extends Fragment {
+    private static String WORKOUTS_FILE = "workouts.json";
+
     private LinearLayout workoutLayout;
     private Spinner workoutsSpinner;
     private Spinner exerciseSeriesSpinner;
 
     private List<String> workoutsIds = new ArrayList<>();
     private List<String> seriesIds = new ArrayList<>();
+    private Button insertButton;
+    private Button editButton;
+    private Button loadButton;
     private JSONObject workoutsJson;
     private HashMap<String, Object> workoutsMap;
 
@@ -47,12 +57,20 @@ public class WorkoutFragment extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_workout, container, false);
 
+        insertButton = view.findViewById(R.id.insertButton);
+        editButton = view.findViewById(R.id.editButton);
+        loadButton = view.findViewById(R.id.loadButton);
         workoutLayout = view.findViewById(R.id.workoutLayout);
         workoutsSpinner = view.findViewById(R.id.workoutsSpinner);
         exerciseSeriesSpinner = view.findViewById(R.id.exerciseSeriesSpinner);
 
+        insertButton.setOnClickListener(v -> {
+            if (getActivity() instanceof MainActivity) {
+                ((MainActivity) getActivity()).loadFragment(new RegisterWorkoutFragment());
+            }
+        });
+
         loadJsonData();
-        saveToInternalStorage("workouts", workoutsJson);
         setupWorkoutSpinner();
 
         return view;
@@ -64,18 +82,37 @@ public class WorkoutFragment extends Fragment {
     }
 
     public void loadJsonData() {
-        try {
-            InputStream inputStream = getContext().getAssets().open("workout.json");
-            int size = inputStream.available();
+        try (FileInputStream fis = getContext().openFileInput(WORKOUTS_FILE)) {
+            int size = fis.available();
             byte[] buffer = new byte[size];
-            inputStream.read(buffer);
-            inputStream.close();
+            fis.read(buffer);
+            fis.close();
             String json = new String(buffer, StandardCharsets.UTF_8);
 
             workoutsJson = new JSONObject(json);
             workoutsMap = (HashMap<String, Object>) convertFromJson(workoutsJson);
             if (workoutsMap != null) {
                 workoutsIds = workoutsMap.keySet().stream().collect(Collectors.toList());
+
+                Comparator<String> comparatorWorkoutsIds = new Comparator<String>() {
+                    @Override
+                    public int compare(String o1, String o2) {
+                        String[] parts1 = o1.split("/");
+                        String[] parts2 = o2.split("/");
+
+                        int year1 = Integer.parseInt(parts1[1]);
+                        int month1 = Integer.parseInt(parts1[0]);
+                        int year2 = Integer.parseInt(parts2[1]);
+                        int month2 = Integer.parseInt(parts2[0]);
+
+                        if (year1 != year2) {
+                            return Integer.compare(year2, year1); // Descending order by year
+                        } else {
+                            return Integer.compare(month2, month1); // Descending order by month
+                        }
+                    }
+                };
+                workoutsIds.sort(comparatorWorkoutsIds);
             }
         } catch (Exception e) {
             Toast.makeText(requireContext(), "Error loading JSON: " + e.getMessage(), Toast.LENGTH_LONG).show();
@@ -94,7 +131,7 @@ public class WorkoutFragment extends Fragment {
         }
     }
 
-    public static HashMap<String, Object> toMap(JSONObject object) throws JSONException {
+    private static HashMap<String, Object> toMap(JSONObject object) throws JSONException {
         HashMap<String, Object> map = new HashMap<>();
         Iterator<String> keys = object.keys();
         while (keys.hasNext()) {
@@ -104,7 +141,7 @@ public class WorkoutFragment extends Fragment {
         return map;
     }
 
-    public static ArrayList<Object> toList(JSONArray array) throws JSONException {
+    private static ArrayList<Object> toList(JSONArray array) throws JSONException {
         ArrayList<Object> list = new ArrayList<>();
         for (int i = 0; i < array.length(); i++) {
             list.add(convertFromJson(array.get(i)));
@@ -112,9 +149,9 @@ public class WorkoutFragment extends Fragment {
         return list;
     }
 
-    private void saveToInternalStorage(String fileName, JSONObject jsonData) {
+    private void saveToInternalStorage(JSONObject jsonData) {
         Context context = getContext();
-        try (FileOutputStream fos = context.openFileOutput(fileName, context.MODE_PRIVATE)) {
+        try (FileOutputStream fos = context.openFileOutput(WORKOUTS_FILE, context.MODE_PRIVATE)) {
             fos.write(jsonData.toString().getBytes());
             Toast.makeText(requireContext(), "File saved!", Toast.LENGTH_SHORT).show();
         } catch (Exception e) {
