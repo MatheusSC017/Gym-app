@@ -64,7 +64,7 @@ public class WorkoutFragment extends Fragment {
         workoutsSpinner = view.findViewById(R.id.workoutsSpinner);
         exerciseSeriesSpinner = view.findViewById(R.id.exerciseSeriesSpinner);
 
-        insertButton.setOnClickListener(v -> {
+        insertButton.setOnClickListener(event -> {
             if (getActivity() instanceof MainActivity) {
                 ((MainActivity) getActivity()).loadFragment(new RegisterWorkoutFragment());
             }

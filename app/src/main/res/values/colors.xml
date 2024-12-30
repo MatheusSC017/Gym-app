@@ -5,5 +5,6 @@
     <color name="primary">#D0D2E3</color>
     <color name="secondary">#D3D5D5</color>
     <color name="tertiary">#D5D8C7</color>
+    <color name="transparentPrimary">#55D0D2E3</color>
     <color name="transparentTertiary">#55D5D8C7</color>
 </resources>

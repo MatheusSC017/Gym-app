@@ -32,12 +32,13 @@
             android:layout_marginStart="16dp"
             android:layout_marginTop="16dp"
             android:layout_marginEnd="16dp"
-            app:layout_constraintEnd_toStartOf="@+id/button"
+            android:background="@color/transparentPrimary"
+            app:layout_constraintEnd_toStartOf="@+id/addSerieButton"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/editTextDate" />
 
         <Button
-            android:id="@+id/button"
+            android:id="@+id/addSerieButton"
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:layout_marginEnd="16dp"
@@ -51,17 +52,19 @@
             app:layout_constraintTop_toTopOf="@+id/editTextText" />
 
         <LinearLayout
+            android:id="@+id/linearLayout"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_margin="16dp"
             android:orientation="vertical"
-            app:layout_constraintBottom_toTopOf="@+id/addWorkoutButton"
+            android:background="@color/transparentPrimary"
+            app:layout_constraintBottom_toTopOf="@+id/addExerciseButton"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/editTextText"></LinearLayout>
 
         <Button
-            android:id="@+id/addWorkoutButton"
+            android:id="@+id/addExerciseButton"
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:layout_marginBottom="16dp"
@@ -73,5 +76,33 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
+
+        <Button
+            android:id="@+id/saveButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@color/primary"
+            android:textColor="@color/black"
+            app:backgroundTint="@null"
+            app:drawableTint="@null"
+            android:text="Salvar"
+            app:layout_constraintBottom_toBottomOf="@+id/addExerciseButton"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/addExerciseButton"
+            app:layout_constraintTop_toTopOf="@+id/addExerciseButton" />
+
+        <Button
+            android:id="@+id/returnButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@color/primary"
+            android:textColor="@color/black"
+            app:backgroundTint="@null"
+            app:drawableTint="@null"
+            android:text="Voltar"
+            app:layout_constraintBottom_toBottomOf="@+id/addExerciseButton"
+            app:layout_constraintEnd_toStartOf="@+id/addExerciseButton"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/addExerciseButton" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </FrameLayout>
