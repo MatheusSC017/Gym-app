@@ -20,6 +20,7 @@ import android.widget.Toast;
 
 import com.example.academy.MainActivity;
 import com.example.academy.R;
+import com.example.academy.ui.base.JsonFragment;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -37,7 +38,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 
-public class WorkoutFragment extends Fragment {
+public class WorkoutFragment extends JsonFragment {
     private static String WORKOUTS_FILE = "workouts.json";
 
     private LinearLayout workoutLayout;
@@ -49,7 +50,6 @@ public class WorkoutFragment extends Fragment {
     private Button insertButton;
     private Button editButton;
     private Button loadButton;
-    private JSONObject workoutsJson;
     private HashMap<String, Object> workoutsMap;
 
     @Override
@@ -70,7 +70,7 @@ public class WorkoutFragment extends Fragment {
             }
         });
 
-        loadJsonData();
+        workoutsMap = loadJsonData(WORKOUTS_FILE);
         setupWorkoutSpinner();
 
         return view;
@@ -81,18 +81,11 @@ public class WorkoutFragment extends Fragment {
         super.onCreate(savedInstanceState);
     }
 
-    public void loadJsonData() {
-        try (FileInputStream fis = getContext().openFileInput(WORKOUTS_FILE)) {
-            int size = fis.available();
-            byte[] buffer = new byte[size];
-            fis.read(buffer);
-            fis.close();
-            String json = new String(buffer, StandardCharsets.UTF_8);
-
-            workoutsJson = new JSONObject(json);
-            workoutsMap = (HashMap<String, Object>) convertFromJson(workoutsJson);
-            if (workoutsMap != null) {
-                workoutsIds = workoutsMap.keySet().stream().collect(Collectors.toList());
+    public HashMap<String, Object> loadJsonData(String filePath) {
+        try {
+            HashMap<String, Object> workoutsExtractedMap = super.loadJsonData(filePath);
+            if (workoutsExtractedMap != null) {
+                workoutsIds = workoutsExtractedMap.keySet().stream().collect(Collectors.toList());
 
                 Comparator<String> comparatorWorkoutsIds = new Comparator<String>() {
                     @Override
@@ -114,48 +107,10 @@ public class WorkoutFragment extends Fragment {
                 };
                 workoutsIds.sort(comparatorWorkoutsIds);
             }
+            return workoutsExtractedMap;
         } catch (Exception e) {
-            Toast.makeText(requireContext(), "Error loading JSON: " + e.getMessage(), Toast.LENGTH_LONG).show();
-        }
-    }
-
-    public static Object convertFromJson(Object json) throws JSONException {
-        if (json == JSONObject.NULL) {
+            Toast.makeText(requireContext(), "Error extracting workouts: " + e.getMessage(), Toast.LENGTH_LONG).show();
             return null;
-        } else if (json instanceof JSONObject) {
-            return toMap((JSONObject) json);
-        } else if (json instanceof JSONArray) {
-            return toList((JSONArray) json);
-        } else {
-            return json;
-        }
-    }
-
-    private static HashMap<String, Object> toMap(JSONObject object) throws JSONException {
-        HashMap<String, Object> map = new HashMap<>();
-        Iterator<String> keys = object.keys();
-        while (keys.hasNext()) {
-            String key = (String) keys.next();
-            map.put(key, convertFromJson(object.get(key)));
-        }
-        return map;
-    }
-
-    private static ArrayList<Object> toList(JSONArray array) throws JSONException {
-        ArrayList<Object> list = new ArrayList<>();
-        for (int i = 0; i < array.length(); i++) {
-            list.add(convertFromJson(array.get(i)));
-        }
-        return list;
-    }
-
-    private void saveToInternalStorage(JSONObject jsonData) {
-        Context context = getContext();
-        try (FileOutputStream fos = context.openFileOutput(WORKOUTS_FILE, context.MODE_PRIVATE)) {
-            fos.write(jsonData.toString().getBytes());
-            Toast.makeText(requireContext(), "File saved!", Toast.LENGTH_SHORT).show();
-        } catch (Exception e) {
-            Toast.makeText(requireContext(), "Error saving file: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
 
