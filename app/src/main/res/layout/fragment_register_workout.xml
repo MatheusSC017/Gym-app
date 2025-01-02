@@ -4,7 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.workout.RegisterWorkoutFragment">
+    tools:context=".ui.workout.RegisterWorkoutFragment"
+    android:background="@color/transparentPrimary">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -26,13 +27,12 @@
             app:layout_constraintTop_toTopOf="parent" />
 
         <Spinner
-            android:id="@+id/editTextText"
+            android:id="@+id/seriesSpinner"
             android:layout_width="0dp"
             android:layout_height="48dp"
             android:layout_marginStart="16dp"
             android:layout_marginTop="16dp"
-            android:layout_marginEnd="16dp"
-            android:background="@color/transparentPrimary"
+            android:layout_marginEnd="8dp"
             app:layout_constraintEnd_toStartOf="@+id/addSerieButton"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/editTextDate" />
@@ -41,15 +41,29 @@
             android:id="@+id/addSerieButton"
             android:layout_width="32dp"
             android:layout_height="32dp"
-            android:layout_marginEnd="16dp"
+            android:layout_marginEnd="8dp"
             android:background="@android:drawable/ic_input_add"
             android:backgroundTint="@color/black"
             android:contentDescription="@string/add_serie"
             app:backgroundTint="@null"
             app:drawableTint="@null"
-            app:layout_constraintBottom_toBottomOf="@+id/editTextText"
+            app:layout_constraintBottom_toBottomOf="@+id/seriesSpinner"
+            app:layout_constraintEnd_toStartOf="@+id/removeSerieButton"
+            app:layout_constraintTop_toTopOf="@+id/seriesSpinner" />
+
+        <Button
+            android:id="@+id/removeSerieButton"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginEnd="16dp"
+            android:background="@android:drawable/ic_delete"
+            android:backgroundTint="@color/black"
+            android:contentDescription="@string/add_serie"
+            app:backgroundTint="@null"
+            app:drawableTint="@null"
+            app:layout_constraintBottom_toBottomOf="@+id/seriesSpinner"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/editTextText" />
+            app:layout_constraintTop_toTopOf="@+id/seriesSpinner" />
 
         <LinearLayout
             android:id="@+id/linearLayout"
@@ -57,11 +71,10 @@
             android:layout_height="0dp"
             android:layout_margin="16dp"
             android:orientation="vertical"
-            android:background="@color/transparentPrimary"
             app:layout_constraintBottom_toTopOf="@+id/addExerciseButton"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/editTextText"></LinearLayout>
+            app:layout_constraintTop_toBottomOf="@+id/seriesSpinner"></LinearLayout>
 
         <Button
             android:id="@+id/addExerciseButton"

@@ -6,20 +6,28 @@ import com.example.academy.view.EditTextDate;
 
 import android.app.AlertDialog;
 import android.os.Bundle;
+
 import androidx.fragment.app.Fragment;
 
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.Toast;
 
-public class RegisterWorkoutFragment extends Fragment {
-    AlertDialog dialog;
-    View dialogView;
-    EditTextDate workoutDate;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.stream.Collectors;
 
+public class RegisterWorkoutFragment extends Fragment {
+    ArrayList<String> seriesNames = new ArrayList<>();
+    HashMap<String, HashMap> seriesMap = new HashMap<>();
+
+    Spinner seriesSpinner;
+    EditTextDate workoutDate;
     Button returnButton;
     Button saveButton;
     Button addSerieButton;
@@ -30,8 +38,9 @@ public class RegisterWorkoutFragment extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_register_workout, container, false);
 
-        dialogView = inflater.inflate(R.layout.dialog_register, null);
         workoutDate = view.findViewById(R.id.editTextDate);
+
+        seriesSpinner = view.findViewById(R.id.seriesSpinner);
 
         returnButton = view.findViewById(R.id.returnButton);
         saveButton = view.findViewById(R.id.saveButton);
@@ -44,27 +53,37 @@ public class RegisterWorkoutFragment extends Fragment {
             }
         });
 
-        addSerieButton.setOnClickListener(event -> showRegisterDialog());
+        addSerieButton.setOnClickListener(event -> showSerieRegisterDialog());
+        addExerciseButton.setOnClickListener(event -> showExerciseRegisterDialog());
+        saveButton.setOnClickListener(event -> saveWorkout());
 
         return view;
     }
 
-    private void showRegisterDialog() {
+    private void showSerieRegisterDialog() {
         if (workoutDate.getText().length() != 7) {
             Toast.makeText(getContext(), "Insira a data da avaliação", Toast.LENGTH_LONG).show();
             return;
         }
 
+        LayoutInflater inflater = LayoutInflater.from(getContext());
+        View dialogView = inflater.inflate(R.layout.dialog_register, null);
+
         EditText registerEditText = dialogView.findViewById(R.id.registerEditText);
         Button cancelButton = dialogView.findViewById(R.id.cancelButton);
         Button submitButton = dialogView.findViewById(R.id.submitButton);
 
-        dialog = new AlertDialog.Builder(getContext()).setView(dialogView).setCancelable(false).create();
+        AlertDialog dialog = new AlertDialog.Builder(getContext()).setView(dialogView).setCancelable(false).create();
 
         cancelButton.setOnClickListener(event -> dialog.dismiss());
 
         submitButton.setOnClickListener(event -> {
-            Toast.makeText(getContext(), registerEditText.getText().toString(), Toast.LENGTH_LONG).show();
+            String serieName = registerEditText.getText().toString();
+            seriesMap.put(serieName, new HashMap());
+            seriesNames.add(serieName);
+
+            setSeriesSpinner();
+
             dialog.dismiss();
         });
 
@@ -72,8 +91,37 @@ public class RegisterWorkoutFragment extends Fragment {
 
     }
 
-    private void addSerie() {
+    private void setSeriesSpinner() {
+        ArrayList<String> seriesNamesAdapter = new ArrayList<>();
+        for (int i = 0; i < seriesNames.size(); i++) {
+            seriesNamesAdapter.add(getLetter(i) + "- " + seriesNames.get(i));
+        }
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item,
+                seriesNamesAdapter);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        seriesSpinner.setAdapter(adapter);
+    }
+
+    private static String getLetter(int number) {
+        StringBuilder stringBuilder = new StringBuilder();
+        while (number >= 0) {
+            stringBuilder.insert(0, (char) ('A' + (number % 26)));
+            number = (number / 26) - 1;
+        }
+        return stringBuilder.toString();
+    }
+
+    private void showExerciseRegisterDialog() {
         // Do nothing
+    }
+
+    private void saveWorkout() {
+        if (workoutDate.getText().length() != 7) {
+            Toast.makeText(getContext(), "Insira a data da avaliação", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        Toast.makeText(getContext(), "Treinamento salvo", Toast.LENGTH_LONG).show();
     }
 
 }

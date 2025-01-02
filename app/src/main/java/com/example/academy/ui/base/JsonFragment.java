@@ -1,5 +1,6 @@
 package com.example.academy.ui.base;
 
+import com.google.gson.Gson;
 import android.content.Context;
 import android.widget.Toast;
 
@@ -36,7 +37,7 @@ public class JsonFragment extends Fragment {
         }
     }
 
-    public static Object convertFromJson(Object json) throws JSONException {
+    private static Object convertFromJson(Object json) throws JSONException {
         if (json == JSONObject.NULL) {
             return null;
         } else if (json instanceof JSONObject) {
@@ -66,9 +67,12 @@ public class JsonFragment extends Fragment {
         return list;
     }
 
-    private void saveToInternalStorage(JSONObject jsonData, String filePath) {
+    public void saveToInternalStorage(HashMap<String, Object> mapData, String filePath) {
         Context context = getContext();
-        try (FileOutputStream fos = context.openFileOutput(filePath, context.MODE_PRIVATE)) {
+        Gson gson = new Gson();
+
+        try (FileOutputStream fos = context.openFileOutput(filePath, Context.MODE_PRIVATE)) {
+            String jsonData = gson.toJson(mapData);
             fos.write(jsonData.toString().getBytes());
             Toast.makeText(requireContext(), "File saved!", Toast.LENGTH_SHORT).show();
         } catch (Exception e) {
