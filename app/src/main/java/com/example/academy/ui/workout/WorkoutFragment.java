@@ -177,8 +177,8 @@ public class WorkoutFragment extends JsonFragment {
                 LinearLayout exerciseCardLayout = exerciseCard.findViewById(R.id.exercisesLayout);
 
                 setupExerciseCard(exercise, exerciseData, exerciseCardLayout);
-                if (exerciseData.containsKey("Simultaneo")) {
-                    List<String> chainedExercises = (List<String>) exerciseData.get("Simultaneo");
+                if (exerciseData.containsKey("Sequence")) {
+                    List<String> chainedExercises = (List<String>) exerciseData.get("Sequence");
                     for (String chainedExercise : chainedExercises) {
                         if (!exercisesCopy.containsKey(chainedExercise)) continue;
 
@@ -210,9 +210,9 @@ public class WorkoutFragment extends JsonFragment {
 
         exerciseTextView.setText(exercise);
         String series = exerciseData.getOrDefault("Series", "1").toString();
-        if (!series.equals("1")) seriesTextView.setText(series);
+        if (!series.equals("1")) seriesTextView.setText(series + " x");
 
-        repetitionsTextView.setText(exerciseData.getOrDefault("Quantidade", "").toString() + " " + exerciseData.getOrDefault("Tipo", "").toString());
+        repetitionsTextView.setText(exerciseData.getOrDefault("Quantity", "").toString() + " " + exerciseData.getOrDefault("Type", "").toString());
         layout.addView(exerciseCard);
     }
 
