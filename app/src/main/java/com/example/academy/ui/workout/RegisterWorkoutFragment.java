@@ -20,7 +20,6 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.stream.Collectors;
 
 public class RegisterWorkoutFragment extends Fragment {
     ArrayList<String> seriesNames = new ArrayList<>();
@@ -31,6 +30,7 @@ public class RegisterWorkoutFragment extends Fragment {
     Button returnButton;
     Button saveButton;
     Button addSerieButton;
+    Button removeSerieButton;
     Button addExerciseButton;
 
     @Override
@@ -45,6 +45,7 @@ public class RegisterWorkoutFragment extends Fragment {
         returnButton = view.findViewById(R.id.returnButton);
         saveButton = view.findViewById(R.id.saveButton);
         addSerieButton = view.findViewById(R.id.addSerieButton);
+        removeSerieButton = view.findViewById(R.id.removeSerieButton);
         addExerciseButton = view.findViewById(R.id.addExerciseButton);
 
         returnButton.setOnClickListener(event -> {
@@ -54,6 +55,7 @@ public class RegisterWorkoutFragment extends Fragment {
         });
 
         addSerieButton.setOnClickListener(event -> showSerieRegisterDialog());
+        removeSerieButton.setOnClickListener(event -> removeSerie());
         addExerciseButton.setOnClickListener(event -> showExerciseRegisterDialog());
         saveButton.setOnClickListener(event -> saveWorkout());
 
@@ -67,7 +69,7 @@ public class RegisterWorkoutFragment extends Fragment {
         }
 
         LayoutInflater inflater = LayoutInflater.from(getContext());
-        View dialogView = inflater.inflate(R.layout.dialog_register, null);
+        View dialogView = inflater.inflate(R.layout.dialog_serie_register, null);
 
         EditText registerEditText = dialogView.findViewById(R.id.registerEditText);
         Button cancelButton = dialogView.findViewById(R.id.cancelButton);
@@ -88,7 +90,18 @@ public class RegisterWorkoutFragment extends Fragment {
         });
 
         dialog.show();
+    }
 
+    private void removeSerie() {
+        Object serieSelected = seriesSpinner.getSelectedItem();
+
+        if (serieSelected != null) {
+            String serie = serieSelected.toString().substring(3);
+            seriesMap.remove(serie);
+            seriesNames.remove(seriesNames.indexOf(serie));
+
+            setSeriesSpinner();
+        }
     }
 
     private void setSeriesSpinner() {
@@ -112,7 +125,11 @@ public class RegisterWorkoutFragment extends Fragment {
     }
 
     private void showExerciseRegisterDialog() {
-        // Do nothing
+        Object serieSelected = seriesSpinner.getSelectedItem();
+
+        if (serieSelected != null) {
+            // Do nothing
+        }
     }
 
     private void saveWorkout() {
