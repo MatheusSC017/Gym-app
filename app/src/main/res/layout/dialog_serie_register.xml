@@ -11,8 +11,7 @@
         android:id="@+id/registerEditText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Nome"
-        android:inputType="textEmailAddress" />
+        android:hint="Nome"/>
 
     <LinearLayout
         android:layout_width="match_parent"

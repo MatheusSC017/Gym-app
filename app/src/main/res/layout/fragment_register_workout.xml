@@ -65,16 +65,22 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="@+id/seriesSpinner" />
 
-        <LinearLayout
-            android:id="@+id/linearLayout"
+        <ScrollView
+            android:id="@+id/workoutScroll"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_margin="16dp"
-            android:orientation="vertical"
             app:layout_constraintBottom_toTopOf="@+id/addExerciseButton"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/seriesSpinner"></LinearLayout>
+            app:layout_constraintTop_toBottomOf="@+id/seriesSpinner">>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/exerciseLinearLayout"
+                android:orientation="vertical"/>
+        </ScrollView>
+
 
         <Button
             android:id="@+id/addExerciseButton"

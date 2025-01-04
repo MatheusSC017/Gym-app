@@ -5,6 +5,7 @@ import com.example.academy.R;
 import com.example.academy.view.EditTextDate;
 
 import android.app.AlertDialog;
+import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
@@ -15,15 +16,22 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 
 public class RegisterWorkoutFragment extends Fragment {
     ArrayList<String> seriesNames = new ArrayList<>();
     HashMap<String, HashMap> seriesMap = new HashMap<>();
+
+    LinearLayout exerciseLinearLayout;
 
     Spinner seriesSpinner;
     EditTextDate workoutDate;
@@ -38,8 +46,19 @@ public class RegisterWorkoutFragment extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_register_workout, container, false);
 
-        workoutDate = view.findViewById(R.id.editTextDate);
+        Date today = new Date();
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(today);
 
+        workoutDate = view.findViewById(R.id.editTextDate);
+        String month;
+        if (calendar.get(Calendar.MONTH) <= 9)
+            month = "0" + (calendar.get(Calendar.MONTH) + 1);
+        else
+            month = String.valueOf(calendar.get(Calendar.MONTH) + 1);
+        workoutDate.setText(month + "/" + calendar.get(Calendar.YEAR));
+
+        exerciseLinearLayout = view.findViewById(R.id.exerciseLinearLayout);
         seriesSpinner = view.findViewById(R.id.seriesSpinner);
 
         returnButton = view.findViewById(R.id.returnButton);
@@ -100,6 +119,7 @@ public class RegisterWorkoutFragment extends Fragment {
             seriesMap.remove(serie);
             seriesNames.remove(seriesNames.indexOf(serie));
 
+            exerciseLinearLayout.removeAllViews();
             setSeriesSpinner();
         }
     }
@@ -128,8 +148,67 @@ public class RegisterWorkoutFragment extends Fragment {
         Object serieSelected = seriesSpinner.getSelectedItem();
 
         if (serieSelected != null) {
-            // Do nothing
+            LayoutInflater layoutInflater = LayoutInflater.from(getContext());
+            View dialogView = layoutInflater.inflate(R.layout.dialog_exercise_register, null);
+
+            Button cancelButton = dialogView.findViewById(R.id.cancelButton);
+            Button saveButton = dialogView.findViewById(R.id.submitButton);
+
+            AlertDialog dialog = new AlertDialog.Builder(getContext()).setView(dialogView).setCancelable(false).create();
+
+            cancelButton.setOnClickListener(event -> dialog.dismiss());
+
+            saveButton.setOnClickListener(event -> {
+                EditText exerciseEditText = dialogView.findViewById(R.id.exerciseEditText);
+                EditText seriesEditText = dialogView.findViewById(R.id.seriesEditText);
+                EditText typeEditText = dialogView.findViewById(R.id.typeEditText);
+                EditText quantityEditText = dialogView.findViewById(R.id.quantityEditText);
+                EditText muscleEditText = dialogView.findViewById(R.id.muscleEditText);
+//                EditText sequenceEditText = dialogView.findViewById(R.id.sequenceEditText);
+                EditText observationEditText = dialogView.findViewById(R.id.observationEditText);
+
+                if (exerciseEditText.getText().length() == 0 ||
+                        seriesEditText.getText().length() == 0 ||
+                        typeEditText.getText().length() == 0 ||
+                        quantityEditText.getText().length() == 0) {
+                    Toast.makeText(getContext(), "Campos obrigatórios (Exercício, Series, Tipo e Quantidade)", Toast.LENGTH_LONG).show();
+                    return;
+                }
+
+                String serie = serieSelected.toString().substring(3);
+
+                HashMap<String, String> exerciseMap = new HashMap<>();
+                exerciseMap.put("Series", seriesEditText.getText().toString());
+                exerciseMap.put("Type", typeEditText.getText().toString());
+                exerciseMap.put("Quantity", quantityEditText.getText().toString());
+                exerciseMap.put("Muscle", muscleEditText.getText().toString());
+                exerciseMap.put("Observation", observationEditText.getText().toString());
+
+                HashMap<String, HashMap> serieMap = seriesMap.get(serie);
+                serieMap.put(exerciseEditText.getText().toString(), exerciseMap);
+
+                setupExerciseCard(exerciseLinearLayout, exerciseEditText.getText().toString(), exerciseMap);
+
+                dialog.dismiss();
+            });
+
+            dialog.show();
         }
+    }
+
+    private void setupExerciseCard(LinearLayout layout, String exercise, HashMap<String, String>  exerciseData) {
+        View exerciseCard = LayoutInflater.from(getContext()).inflate(R.layout.register_exercise_layout, layout, false);
+
+        TextView exerciseTextView = exerciseCard.findViewById(R.id.exerciseTextView);
+        TextView seriesTextView = exerciseCard.findViewById(R.id.seriesTextView);
+        TextView repetitionsTextView = exerciseCard.findViewById(R.id.repetitionsTextView);
+
+        exerciseTextView.setText(exercise);
+        String series = exerciseData.getOrDefault("Series", "1").toString();
+        if (!series.equals("1")) seriesTextView.setText(series + " x");
+        repetitionsTextView.setText(exerciseData.getOrDefault("Quantity", "").toString() + " " + exerciseData.getOrDefault("Type", "").toString());
+
+        layout.addView(exerciseCard);
     }
 
     private void saveWorkout() {
