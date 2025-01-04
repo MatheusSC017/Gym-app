@@ -10,7 +10,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginEnd="8dp"
-        app:layout_constraintEnd_toStartOf="@+id/addSerieButton2"
+        app:layout_constraintEnd_toStartOf="@+id/editExerciseButton"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
@@ -24,21 +24,21 @@
 
 
     <Button
-        android:id="@+id/addSerieButton2"
+        android:id="@+id/editExerciseButton"
         android:layout_width="32dp"
         android:layout_height="32dp"
         android:layout_marginEnd="8dp"
-        android:background="@android:drawable/ic_input_add"
+        android:background="@android:drawable/ic_menu_edit"
         android:backgroundTint="@color/black"
         android:contentDescription="@string/add_serie"
         app:backgroundTint="@null"
         app:drawableTint="@null"
         app:layout_constraintBottom_toBottomOf="@+id/linearLayout"
-        app:layout_constraintEnd_toStartOf="@+id/removeSerieButton2"
+        app:layout_constraintEnd_toStartOf="@+id/removeExerciseButton"
         app:layout_constraintTop_toTopOf="@+id/linearLayout" />
 
     <Button
-        android:id="@+id/removeSerieButton2"
+        android:id="@+id/removeExerciseButton"
         android:layout_width="32dp"
         android:layout_height="32dp"
         android:layout_marginEnd="8dp"

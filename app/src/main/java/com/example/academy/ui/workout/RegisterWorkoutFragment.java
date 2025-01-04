@@ -12,6 +12,7 @@ import androidx.fragment.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -99,10 +100,10 @@ public class RegisterWorkoutFragment extends Fragment {
         submitButton.setOnClickListener(event -> {
             String serieName = registerEditText.getText().toString();
 
-            ArrayList<Object> serieObject = new ArrayList<>();
-            serieObject.add(serieName);
-            serieObject.add(new HashMap());
-            seriesList.add(serieObject);
+            ArrayList<Object> serie = new ArrayList<>();
+            serie.add(serieName);
+            serie.add(new HashMap());
+            seriesList.add(serie);
             seriesNames.add(serieName);
 
             setSeriesSpinner();
@@ -134,6 +135,25 @@ public class RegisterWorkoutFragment extends Fragment {
                 seriesNamesAdapter);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         seriesSpinner.setAdapter(adapter);
+
+        seriesSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
+                ArrayList<Object> serie = seriesList.get(position);
+                HashMap<String, HashMap> exercises = (HashMap<String, HashMap>) serie.get(1);
+
+                exerciseLinearLayout.removeAllViews();
+                exercises.forEach((exerciseName, exerciseData) -> {
+                    setupExerciseCard(exerciseLinearLayout, exerciseName, exerciseData);
+                });
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+                // Do nothing
+            }
+        });
+
     }
 
     private static String getLetter(int number) {
@@ -209,6 +229,10 @@ public class RegisterWorkoutFragment extends Fragment {
         TextView exerciseTextView = exerciseCard.findViewById(R.id.exerciseTextView);
         TextView seriesTextView = exerciseCard.findViewById(R.id.seriesTextView);
         TextView repetitionsTextView = exerciseCard.findViewById(R.id.repetitionsTextView);
+        Button editExerciseButton = exerciseCard.findViewById(R.id.editExerciseButton);
+        Button removeExerciseButton = exerciseCard.findViewById(R.id.removeExerciseButton);
+
+        removeExerciseButton.setOnClickListener(event -> removeExercise(exercise));
 
         exerciseTextView.setText(exercise);
         String series = exerciseData.getOrDefault("Series", "1").toString();
@@ -216,6 +240,22 @@ public class RegisterWorkoutFragment extends Fragment {
         repetitionsTextView.setText(exerciseData.getOrDefault("Quantity", "").toString() + " " + exerciseData.getOrDefault("Type", "").toString());
 
         layout.addView(exerciseCard);
+    }
+
+    private void removeExercise(String exercise) {
+        Integer serieIndex = seriesSpinner.getSelectedItemPosition();
+        HashMap<String, HashMap> serieMap = (HashMap<String, HashMap>) seriesList.get(serieIndex).get(1);
+        serieMap.remove(exercise);
+
+        for (int i = 0; i <= exerciseLinearLayout.getChildCount(); i++) {
+            View exerciseCard = exerciseLinearLayout.getChildAt(i);
+            TextView exerciseTextView = exerciseCard.findViewById(R.id.exerciseTextView);
+            if (exerciseTextView.getText().toString().equals(exercise)) {
+                exerciseLinearLayout.removeView(exerciseCard);
+                break;
+            }
+        }
+
     }
 
     private void saveWorkout() {
