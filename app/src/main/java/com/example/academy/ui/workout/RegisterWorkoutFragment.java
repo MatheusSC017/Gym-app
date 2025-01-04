@@ -5,7 +5,6 @@ import com.example.academy.R;
 import com.example.academy.view.EditTextDate;
 
 import android.app.AlertDialog;
-import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
@@ -25,11 +24,10 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 
 public class RegisterWorkoutFragment extends Fragment {
     ArrayList<String> seriesNames = new ArrayList<>();
-    HashMap<String, HashMap> seriesMap = new HashMap<>();
+    ArrayList<ArrayList<Object>> seriesList = new ArrayList<>();
 
     LinearLayout exerciseLinearLayout;
 
@@ -100,7 +98,11 @@ public class RegisterWorkoutFragment extends Fragment {
 
         submitButton.setOnClickListener(event -> {
             String serieName = registerEditText.getText().toString();
-            seriesMap.put(serieName, new HashMap());
+
+            ArrayList<Object> serieObject = new ArrayList<>();
+            serieObject.add(serieName);
+            serieObject.add(new HashMap());
+            seriesList.add(serieObject);
             seriesNames.add(serieName);
 
             setSeriesSpinner();
@@ -115,9 +117,8 @@ public class RegisterWorkoutFragment extends Fragment {
         Object serieSelected = seriesSpinner.getSelectedItem();
 
         if (serieSelected != null) {
-            String serie = serieSelected.toString().substring(3);
-            seriesMap.remove(serie);
-            seriesNames.remove(seriesNames.indexOf(serie));
+            seriesList.remove(seriesSpinner.getSelectedItemPosition());
+            seriesNames.remove(seriesSpinner.getSelectedItemPosition());
 
             exerciseLinearLayout.removeAllViews();
             setSeriesSpinner();
@@ -175,16 +176,22 @@ public class RegisterWorkoutFragment extends Fragment {
                     return;
                 }
 
-                String serie = serieSelected.toString().substring(3);
+                Integer serieIndex = seriesSpinner.getSelectedItemPosition();
+                HashMap<String, HashMap> serieMap = (HashMap<String, HashMap>) seriesList.get(serieIndex).get(1);
+
+                if (serieMap.keySet().contains(exerciseEditText.getText().toString())) {
+                    Toast.makeText(getContext(), "Registro já existente", Toast.LENGTH_LONG).show();
+                    return;
+                }
 
                 HashMap<String, String> exerciseMap = new HashMap<>();
+
                 exerciseMap.put("Series", seriesEditText.getText().toString());
                 exerciseMap.put("Type", typeEditText.getText().toString());
                 exerciseMap.put("Quantity", quantityEditText.getText().toString());
                 exerciseMap.put("Muscle", muscleEditText.getText().toString());
                 exerciseMap.put("Observation", observationEditText.getText().toString());
 
-                HashMap<String, HashMap> serieMap = seriesMap.get(serie);
                 serieMap.put(exerciseEditText.getText().toString(), exerciseMap);
 
                 setupExerciseCard(exerciseLinearLayout, exerciseEditText.getText().toString(), exerciseMap);
