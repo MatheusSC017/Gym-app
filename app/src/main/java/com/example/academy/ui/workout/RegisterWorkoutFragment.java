@@ -24,10 +24,12 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 
 public class RegisterWorkoutFragment extends JsonFragment {
     ArrayList<String> seriesNames = new ArrayList<>();
     ArrayList<ArrayList<Object>> seriesList = new ArrayList<>();
+    HashMap<String, HashMap> exercisesSerie;
 
     LinearLayout exerciseLinearLayout;
 
@@ -140,11 +142,10 @@ public class RegisterWorkoutFragment extends JsonFragment {
         seriesSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
-                ArrayList<Object> serie = seriesList.get(position);
-                HashMap<String, HashMap> exercises = (HashMap<String, HashMap>) serie.get(1);
+                exercisesSerie = (HashMap<String, HashMap>) seriesList.get(position).get(1);
 
                 exerciseLinearLayout.removeAllViews();
-                exercises.forEach((exerciseName, exerciseData) -> {
+                exercisesSerie.forEach((exerciseName, exerciseData) -> {
                     setupExerciseCard(exerciseLinearLayout, exerciseName, exerciseData);
                 });
             }
@@ -167,9 +168,9 @@ public class RegisterWorkoutFragment extends JsonFragment {
             Button cancelButton = dialogView.findViewById(R.id.cancelButton);
             Button saveButton = dialogView.findViewById(R.id.submitButton);
 
-            AlertDialog dialog = new AlertDialog.Builder(getContext()).setView(dialogView).setCancelable(false).create();
+            AlertDialog registerDialog = new AlertDialog.Builder(getContext()).setView(dialogView).setCancelable(false).create();
 
-            cancelButton.setOnClickListener(event -> dialog.dismiss());
+            cancelButton.setOnClickListener(event -> registerDialog.dismiss());
 
             saveButton.setOnClickListener(event -> {
                 EditText exerciseEditText = dialogView.findViewById(R.id.exerciseEditText);
@@ -177,7 +178,6 @@ public class RegisterWorkoutFragment extends JsonFragment {
                 EditText typeEditText = dialogView.findViewById(R.id.typeEditText);
                 EditText quantityEditText = dialogView.findViewById(R.id.quantityEditText);
                 EditText muscleEditText = dialogView.findViewById(R.id.muscleEditText);
-//                EditText sequenceEditText = dialogView.findViewById(R.id.sequenceEditText);
                 EditText observationEditText = dialogView.findViewById(R.id.observationEditText);
 
                 if (exerciseEditText.getText().length() == 0 ||
@@ -188,15 +188,12 @@ public class RegisterWorkoutFragment extends JsonFragment {
                     return;
                 }
 
-                Integer serieIndex = seriesSpinner.getSelectedItemPosition();
-                HashMap<String, HashMap> serieMap = (HashMap<String, HashMap>) seriesList.get(serieIndex).get(1);
-
-                if (serieMap.keySet().contains(exerciseEditText.getText().toString())) {
+                if (exercisesSerie.keySet().contains(exerciseEditText.getText().toString())) {
                     Toast.makeText(getContext(), "Registro já existente", Toast.LENGTH_LONG).show();
                     return;
                 }
 
-                HashMap<String, String> exerciseMap = new HashMap<>();
+                HashMap<String, Object> exerciseMap = new HashMap<>();
 
                 exerciseMap.put("Series", seriesEditText.getText().toString());
                 exerciseMap.put("Type", typeEditText.getText().toString());
@@ -204,18 +201,18 @@ public class RegisterWorkoutFragment extends JsonFragment {
                 exerciseMap.put("Muscle", muscleEditText.getText().toString());
                 exerciseMap.put("Observation", observationEditText.getText().toString());
 
-                serieMap.put(exerciseEditText.getText().toString(), exerciseMap);
+                exercisesSerie.put(exerciseEditText.getText().toString(), exerciseMap);
 
                 setupExerciseCard(exerciseLinearLayout, exerciseEditText.getText().toString(), exerciseMap);
 
-                dialog.dismiss();
+                registerDialog.dismiss();
             });
 
-            dialog.show();
+            registerDialog.show();
         }
     }
 
-    private void setupExerciseCard(LinearLayout layout, String exercise, HashMap<String, String>  exerciseData) {
+    private void setupExerciseCard(LinearLayout layout, String exercise, HashMap<String, Object>  exerciseData) {
         View exerciseCard = LayoutInflater.from(getContext()).inflate(R.layout.register_exercise_layout, layout, false);
 
         TextView exerciseTextView = exerciseCard.findViewById(R.id.exerciseTextView);
@@ -225,7 +222,7 @@ public class RegisterWorkoutFragment extends JsonFragment {
         Button removeExerciseButton = exerciseCard.findViewById(R.id.removeExerciseButton);
 
         editExerciseButton.setOnClickListener(event -> editExercise(exerciseTextView.getText().toString()));
-        removeExerciseButton.setOnClickListener(event -> removeExercise(exercise));
+        removeExerciseButton.setOnClickListener(event -> removeExercise(exerciseTextView.getText().toString()));
 
         exerciseTextView.setText(exercise);
         String series = exerciseData.getOrDefault("Series", "1").toString();
@@ -236,10 +233,7 @@ public class RegisterWorkoutFragment extends JsonFragment {
     }
 
     private void editExercise(String exercise) {
-        Integer serieIndex = seriesSpinner.getSelectedItemPosition();
-        ArrayList serie = seriesList.get(serieIndex);
-        HashMap<String, HashMap> exercises = (HashMap<String, HashMap>) serie.get(1);
-        HashMap<String, String> exerciseData = exercises.get(exercise);
+        HashMap<String, String> exerciseData = exercisesSerie.get(exercise);
 
         LayoutInflater layoutInflater = LayoutInflater.from(getContext());
         View dialogView = layoutInflater.inflate(R.layout.dialog_exercise_register, null);
@@ -254,8 +248,6 @@ public class RegisterWorkoutFragment extends JsonFragment {
         quantityEditText.setText(exerciseData.getOrDefault("Quantity", ""));
         EditText muscleEditText = dialogView.findViewById(R.id.muscleEditText);
         muscleEditText.setText(exerciseData.getOrDefault("Muscle", ""));
-        EditText sequenceEditText = dialogView.findViewById(R.id.sequenceEditText);
-        sequenceEditText.setText(exerciseData.getOrDefault("Sequence", ""));
         EditText observationEditText = dialogView.findViewById(R.id.observationEditText);
         observationEditText.setText(exerciseData.getOrDefault("Observation", ""));
 
@@ -270,12 +262,11 @@ public class RegisterWorkoutFragment extends JsonFragment {
             exerciseData.put("Type", typeEditText.getText().toString());
             exerciseData.put("Quantity", quantityEditText.getText().toString());
             exerciseData.put("Muscle", muscleEditText.getText().toString());
-            exerciseData.put("Sequence", sequenceEditText.getText().toString());
             exerciseData.put("Observation", observationEditText.getText().toString());
 
             if (!exerciseEditText.getText().toString().equals(exercise)) {
-                exercises.remove(exercise);
-                exercises.put(exerciseEditText.getText().toString(), exerciseData);
+                exercisesSerie.remove(exercise);
+                exercisesSerie.put(exerciseEditText.getText().toString(), exerciseData);
             }
 
             for (int i = 0; i <= exerciseLinearLayout.getChildCount(); i++) {
@@ -301,9 +292,7 @@ public class RegisterWorkoutFragment extends JsonFragment {
     }
 
     private void removeExercise(String exercise) {
-        Integer serieIndex = seriesSpinner.getSelectedItemPosition();
-        HashMap<String, HashMap> serieMap = (HashMap<String, HashMap>) seriesList.get(serieIndex).get(1);
-        serieMap.remove(exercise);
+        exercisesSerie.remove(exercise);
 
         for (int i = 0; i <= exerciseLinearLayout.getChildCount(); i++) {
             View exerciseCard = exerciseLinearLayout.getChildAt(i);
@@ -327,9 +316,10 @@ public class RegisterWorkoutFragment extends JsonFragment {
 
             if (workoutsExtractedMap.keySet().contains(workoutName)) {
                 HashMap<String, HashMap> workout = (HashMap<String, HashMap>) workoutsExtractedMap.get(workoutName);
-                if (workout.keySet().contains("Series"))
+                if (workout.keySet().contains("Series")) {
                     Toast.makeText(getContext(), "Já existe treinamento com está data", Toast.LENGTH_LONG).show();
                     return;
+                }
             }
 
             HashMap<String, HashMap> series = new HashMap<>();
