@@ -6,6 +6,7 @@ import com.example.academy.ui.base.JsonFragment;
 import com.example.academy.view.EditTextDate;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.os.Bundle;
 
 import android.view.LayoutInflater;
@@ -37,6 +38,7 @@ public class RegisterWorkoutFragment extends JsonFragment {
     EditTextDate workoutDate;
     Button returnButton;
     Button saveButton;
+    Button setLinksButton;
     Button addSerieButton;
     Button removeSerieButton;
     Button addExerciseButton;
@@ -63,6 +65,7 @@ public class RegisterWorkoutFragment extends JsonFragment {
 
         returnButton = view.findViewById(R.id.returnButton);
         saveButton = view.findViewById(R.id.saveButton);
+        setLinksButton = view.findViewById(R.id.setLinksButton);
         addSerieButton = view.findViewById(R.id.addSerieButton);
         removeSerieButton = view.findViewById(R.id.removeSerieButton);
         addExerciseButton = view.findViewById(R.id.addExerciseButton);
@@ -77,6 +80,7 @@ public class RegisterWorkoutFragment extends JsonFragment {
         removeSerieButton.setOnClickListener(event -> removeSerie());
         addExerciseButton.setOnClickListener(event -> showExerciseRegisterDialog());
         saveButton.setOnClickListener(event -> saveWorkout());
+        setLinksButton.setOnClickListener(event -> showSetLinksDialog());
 
         return view;
     }
@@ -302,6 +306,41 @@ public class RegisterWorkoutFragment extends JsonFragment {
                 break;
             }
         }
+
+    }
+
+    private void showSetLinksDialog() {
+        Context context = getContext();
+        if (exercisesSerie.isEmpty()) {
+            Toast.makeText(context, "Nenhum exercício cadastrado", Toast.LENGTH_LONG).show();
+            return;
+        }
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+
+        LayoutInflater inflater = LayoutInflater.from(context);
+        View dialogView = inflater.inflate(R.layout.dialog_scroll_view, null);
+        LinearLayout container = dialogView.findViewById(R.id.container);
+
+        for (String exercise: exercisesSerie.keySet()) {
+            View sequenceView = inflater.inflate(R.layout.sequence_selection_layout, container, false);
+
+            TextView exerciseTextView = sequenceView.findViewById(R.id.exerciseTextView);
+            Spinner sequenceSpinner = sequenceView.findViewById(R.id.sequenceSpinner);
+
+            exerciseTextView.setText(exercise);
+            ArrayAdapter<Integer> adapter = new ArrayAdapter<>(context, android.R.layout.simple_spinner_item);
+            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            for (int i = 0; i <= 9; i++) adapter.add(i);
+            sequenceSpinner.setAdapter(adapter);
+
+            container.addView(sequenceView);
+        }
+
+        builder.setView(dialogView)
+                .setTitle("Definir exercícios em conjunto")
+                .setPositiveButton("Ok", null);
+
+        builder.create().show();
 
     }
 

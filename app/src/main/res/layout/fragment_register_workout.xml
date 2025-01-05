@@ -19,8 +19,8 @@
             android:layout_marginTop="16dp"
             android:layout_marginRight="16dp"
             android:hint="@string/workout_date"
-            android:maxLength="7"
             android:inputType="number"
+            android:maxLength="7"
             android:minHeight="48dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -70,58 +70,88 @@
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_margin="16dp"
-            app:layout_constraintBottom_toTopOf="@+id/addExerciseButton"
+            app:layout_constraintBottom_toTopOf="@+id/footerLayout"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/seriesSpinner">>
+
             <LinearLayout
+                android:id="@+id/exerciseLinearLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:id="@+id/exerciseLinearLayout"
-                android:orientation="vertical"/>
+                android:orientation="vertical" />
         </ScrollView>
 
 
-        <Button
-            android:id="@+id/addExerciseButton"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_marginBottom="16dp"
-            android:background="@android:drawable/ic_input_add"
-            android:backgroundTint="@color/black"
-            android:contentDescription="@string/add_exercise"
-            app:backgroundTint="@null"
-            app:drawableTint="@null"
+        <LinearLayout
+            android:id="@+id/footerLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:orientation="horizontal"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
+            app:layout_constraintStart_toStartOf="parent">
 
-        <Button
-            android:id="@+id/saveButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="@color/primary"
-            android:textColor="@color/black"
-            app:backgroundTint="@null"
-            app:drawableTint="@null"
-            android:text="Salvar"
-            app:layout_constraintBottom_toBottomOf="@+id/addExerciseButton"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/addExerciseButton"
-            app:layout_constraintTop_toTopOf="@+id/addExerciseButton" />
+            <Button
+                android:id="@+id/returnButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@color/primary"
+                android:text="Voltar"
+                android:textColor="@color/black"
+                app:backgroundTint="@null"
+                app:drawableTint="@null" />
 
-        <Button
-            android:id="@+id/returnButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="@color/primary"
-            android:textColor="@color/black"
-            app:backgroundTint="@null"
-            app:drawableTint="@null"
-            android:text="Voltar"
-            app:layout_constraintBottom_toBottomOf="@+id/addExerciseButton"
-            app:layout_constraintEnd_toStartOf="@+id/addExerciseButton"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/addExerciseButton" />
+            <Space
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1" />
+
+            <Button
+                android:id="@+id/addExerciseButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginBottom="16dp"
+                android:background="@android:drawable/ic_input_add"
+                android:backgroundTint="@color/black"
+                android:contentDescription="@string/add_exercise"
+                app:backgroundTint="@null"
+                app:drawableTint="@null" />
+
+            <Space
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1" />
+
+            <Button
+                android:id="@+id/setLinksButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/ic_link_16"
+                android:backgroundTint="@color/black"
+                android:contentDescription="@string/add_exercise"
+                app:backgroundTint="@null"
+                app:drawableTint="@null" />
+
+            <Space
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1" />
+
+            <Button
+                android:id="@+id/saveButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@color/primary"
+                android:text="Salvar"
+                android:textColor="@color/black"
+                app:backgroundTint="@null"
+                app:drawableTint="@null" />
+
+        </LinearLayout>
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 </FrameLayout>
