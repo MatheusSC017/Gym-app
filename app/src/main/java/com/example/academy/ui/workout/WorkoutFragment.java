@@ -29,8 +29,6 @@ import java.util.stream.Collectors;
 
 
 public class WorkoutFragment extends JsonFragment {
-    private static String WORKOUTS_FILE = "workouts.json";
-
     private LinearLayout workoutLayout;
     private Spinner workoutsSpinner;
     private Spinner exerciseSeriesSpinner;

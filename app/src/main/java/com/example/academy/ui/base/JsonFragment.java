@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 public class JsonFragment extends Fragment {
+    protected static String WORKOUTS_FILE = "workouts.json";
     private HashMap<String, Object> dataMap;
 
     public HashMap<String, Object> loadJsonData(String filePath) {
@@ -75,7 +76,6 @@ public class JsonFragment extends Fragment {
         try (FileOutputStream fos = context.openFileOutput(filePath, Context.MODE_PRIVATE)) {
             String jsonData = gson.toJson(mapData);
             fos.write(jsonData.toString().getBytes());
-            Toast.makeText(requireContext(), "File saved!", Toast.LENGTH_SHORT).show();
         } catch (Exception e) {
             Toast.makeText(requireContext(), "Error saving file: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }

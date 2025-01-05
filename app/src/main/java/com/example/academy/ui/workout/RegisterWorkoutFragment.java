@@ -2,12 +2,11 @@ package com.example.academy.ui.workout;
 
 import com.example.academy.MainActivity;
 import com.example.academy.R;
+import com.example.academy.ui.base.JsonFragment;
 import com.example.academy.view.EditTextDate;
 
 import android.app.AlertDialog;
 import android.os.Bundle;
-
-import androidx.fragment.app.Fragment;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -26,7 +25,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 
-public class RegisterWorkoutFragment extends Fragment {
+public class RegisterWorkoutFragment extends JsonFragment {
     ArrayList<String> seriesNames = new ArrayList<>();
     ArrayList<ArrayList<Object>> seriesList = new ArrayList<>();
 
@@ -98,6 +97,7 @@ public class RegisterWorkoutFragment extends Fragment {
         cancelButton.setOnClickListener(event -> dialog.dismiss());
 
         submitButton.setOnClickListener(event -> {
+            Integer selectedSerieIndex = seriesSpinner.getSelectedItemPosition();
             String serieName = registerEditText.getText().toString();
 
             ArrayList<Object> serie = new ArrayList<>();
@@ -107,6 +107,7 @@ public class RegisterWorkoutFragment extends Fragment {
             seriesNames.add(serieName);
 
             setSeriesSpinner();
+            seriesSpinner.setSelection(selectedSerieIndex);
 
             dialog.dismiss();
         });
@@ -154,15 +155,6 @@ public class RegisterWorkoutFragment extends Fragment {
             }
         });
 
-    }
-
-    private static String getLetter(int number) {
-        StringBuilder stringBuilder = new StringBuilder();
-        while (number >= 0) {
-            stringBuilder.insert(0, (char) ('A' + (number % 26)));
-            number = (number / 26) - 1;
-        }
-        return stringBuilder.toString();
     }
 
     private void showExerciseRegisterDialog() {
@@ -232,6 +224,7 @@ public class RegisterWorkoutFragment extends Fragment {
         Button editExerciseButton = exerciseCard.findViewById(R.id.editExerciseButton);
         Button removeExerciseButton = exerciseCard.findViewById(R.id.removeExerciseButton);
 
+        editExerciseButton.setOnClickListener(event -> editExercise(exerciseTextView.getText().toString()));
         removeExerciseButton.setOnClickListener(event -> removeExercise(exercise));
 
         exerciseTextView.setText(exercise);
@@ -240,6 +233,71 @@ public class RegisterWorkoutFragment extends Fragment {
         repetitionsTextView.setText(exerciseData.getOrDefault("Quantity", "").toString() + " " + exerciseData.getOrDefault("Type", "").toString());
 
         layout.addView(exerciseCard);
+    }
+
+    private void editExercise(String exercise) {
+        Integer serieIndex = seriesSpinner.getSelectedItemPosition();
+        ArrayList serie = seriesList.get(serieIndex);
+        HashMap<String, HashMap> exercises = (HashMap<String, HashMap>) serie.get(1);
+        HashMap<String, String> exerciseData = exercises.get(exercise);
+
+        LayoutInflater layoutInflater = LayoutInflater.from(getContext());
+        View dialogView = layoutInflater.inflate(R.layout.dialog_exercise_register, null);
+
+        EditText exerciseEditText = dialogView.findViewById(R.id.exerciseEditText);
+        exerciseEditText.setText(exercise);
+        EditText seriesEditText = dialogView.findViewById(R.id.seriesEditText);
+        seriesEditText.setText(exerciseData.getOrDefault("Series", ""));
+        EditText typeEditText = dialogView.findViewById(R.id.typeEditText);
+        typeEditText.setText(exerciseData.getOrDefault("Type", ""));
+        EditText quantityEditText = dialogView.findViewById(R.id.quantityEditText);
+        quantityEditText.setText(exerciseData.getOrDefault("Quantity", ""));
+        EditText muscleEditText = dialogView.findViewById(R.id.muscleEditText);
+        muscleEditText.setText(exerciseData.getOrDefault("Muscle", ""));
+        EditText sequenceEditText = dialogView.findViewById(R.id.sequenceEditText);
+        sequenceEditText.setText(exerciseData.getOrDefault("Sequence", ""));
+        EditText observationEditText = dialogView.findViewById(R.id.observationEditText);
+        observationEditText.setText(exerciseData.getOrDefault("Observation", ""));
+
+        Button cancelButton = dialogView.findViewById(R.id.cancelButton);
+        Button saveButton = dialogView.findViewById(R.id.submitButton);
+
+        AlertDialog dialog = new AlertDialog.Builder(getContext()).setView(dialogView).setCancelable(false).create();
+
+        cancelButton.setOnClickListener(event -> dialog.dismiss());
+        saveButton.setOnClickListener(event -> {
+            exerciseData.put("Series", seriesEditText.getText().toString());
+            exerciseData.put("Type", typeEditText.getText().toString());
+            exerciseData.put("Quantity", quantityEditText.getText().toString());
+            exerciseData.put("Muscle", muscleEditText.getText().toString());
+            exerciseData.put("Sequence", sequenceEditText.getText().toString());
+            exerciseData.put("Observation", observationEditText.getText().toString());
+
+            if (!exerciseEditText.getText().toString().equals(exercise)) {
+                exercises.remove(exercise);
+                exercises.put(exerciseEditText.getText().toString(), exerciseData);
+            }
+
+            for (int i = 0; i <= exerciseLinearLayout.getChildCount(); i++) {
+                View exerciseCard = exerciseLinearLayout.getChildAt(i);
+                TextView exerciseTextView = exerciseCard.findViewById(R.id.exerciseTextView);
+                if (exerciseTextView != null && exerciseTextView.getText().toString().equals(exercise)) {
+                    TextView seriesTextView = exerciseCard.findViewById(R.id.seriesTextView);
+                    TextView repetitionsTextView = exerciseCard.findViewById(R.id.repetitionsTextView);
+
+                    exerciseTextView.setText(exerciseEditText.getText().toString());
+                    String series = exerciseData.getOrDefault("Series", "1").toString();
+                    if (!series.equals("1")) seriesTextView.setText(series + " x");
+                    repetitionsTextView.setText(exerciseData.getOrDefault("Quantity", "").toString() + " " + exerciseData.getOrDefault("Type", "").toString());
+
+                    break;
+                }
+            }
+
+            dialog.dismiss();
+        });
+
+        dialog.show();
     }
 
     private void removeExercise(String exercise) {
@@ -263,8 +321,50 @@ public class RegisterWorkoutFragment extends Fragment {
             Toast.makeText(getContext(), "Insira a data da avaliação", Toast.LENGTH_LONG).show();
             return;
         }
+        try {
+            String workoutName = workoutDate.getText().toString();
+            HashMap<String, Object> workoutsExtractedMap = super.loadJsonData(WORKOUTS_FILE);
 
-        Toast.makeText(getContext(), "Treinamento salvo", Toast.LENGTH_LONG).show();
+            if (workoutsExtractedMap.keySet().contains(workoutName)) {
+                HashMap<String, HashMap> workout = (HashMap<String, HashMap>) workoutsExtractedMap.get(workoutName);
+                if (workout.keySet().contains("Series"))
+                    Toast.makeText(getContext(), "Já existe treinamento com está data", Toast.LENGTH_LONG).show();
+                    return;
+            }
+
+            HashMap<String, HashMap> series = new HashMap<>();
+
+            for (int i = 0; i < seriesList.size(); i++) {
+                ArrayList<Object> serieData = seriesList.get(i);
+                series.put((String) serieData.get(0), (HashMap) serieData.get(1));
+            }
+
+            if (workoutsExtractedMap.keySet().contains(workoutName)) {
+                HashMap<String, HashMap> workoutData = (HashMap<String, HashMap>) workoutsExtractedMap.get(workoutName);
+                workoutData.put("Series", series);
+            } else {
+                HashMap<String, HashMap> workoutData = new HashMap<>();
+                workoutData.put("Series", series);
+                workoutsExtractedMap.put(workoutName, workoutData);
+            }
+            saveToInternalStorage(workoutsExtractedMap, WORKOUTS_FILE);
+
+            Toast.makeText(getContext(), "Treinamento salvo", Toast.LENGTH_LONG).show();
+            if (getActivity() instanceof MainActivity) {
+                ((MainActivity) getActivity()).loadFragment(new WorkoutFragment());
+            }
+        } catch (Exception e) {
+            Toast.makeText(requireContext(), "Error extracting workouts: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private static String getLetter(int number) {
+        StringBuilder stringBuilder = new StringBuilder();
+        while (number >= 0) {
+            stringBuilder.insert(0, (char) ('A' + (number % 26)));
+            number = (number / 26) - 1;
+        }
+        return stringBuilder.toString();
     }
 
 }
