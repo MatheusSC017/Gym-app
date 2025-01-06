@@ -7,6 +7,7 @@ import com.example.academy.view.EditTextDate;
 
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Bundle;
 
 import android.view.LayoutInflater;
@@ -23,14 +24,18 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
 public class RegisterWorkoutFragment extends JsonFragment {
+    Integer sequenceAvailableSelection = 9;
+
     ArrayList<String> seriesNames = new ArrayList<>();
     ArrayList<ArrayList<Object>> seriesList = new ArrayList<>();
     HashMap<String, HashMap> exercisesSerie;
+    List<ArrayList<String>> sequenceGroups;
 
     LinearLayout exerciseLinearLayout;
 
@@ -103,12 +108,15 @@ public class RegisterWorkoutFragment extends JsonFragment {
         cancelButton.setOnClickListener(event -> dialog.dismiss());
 
         submitButton.setOnClickListener(event -> {
-            Integer selectedSerieIndex = seriesSpinner.getSelectedItemPosition();
+            int selectedSerieIndex = seriesSpinner.getSelectedItemPosition();
             String serieName = registerEditText.getText().toString();
+            ArrayList<ArrayList<String>> sequenceArray = new ArrayList<>();
+            for (int i = 0; i < sequenceAvailableSelection; i++) sequenceArray.add(new ArrayList<>());
 
             ArrayList<Object> serie = new ArrayList<>();
             serie.add(serieName);
-            serie.add(new HashMap());
+            serie.add(new HashMap<>());
+            serie.add(sequenceArray);
             seriesList.add(serie);
             seriesNames.add(serieName);
 
@@ -147,6 +155,7 @@ public class RegisterWorkoutFragment extends JsonFragment {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
                 exercisesSerie = (HashMap<String, HashMap>) seriesList.get(position).get(1);
+                sequenceGroups = (List<ArrayList<String>>) seriesList.get(position).get(2);
 
                 exerciseLinearLayout.removeAllViews();
                 exercisesSerie.forEach((exerciseName, exerciseData) -> {
@@ -330,15 +339,37 @@ public class RegisterWorkoutFragment extends JsonFragment {
             exerciseTextView.setText(exercise);
             ArrayAdapter<Integer> adapter = new ArrayAdapter<>(context, android.R.layout.simple_spinner_item);
             adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-            for (int i = 0; i <= 9; i++) adapter.add(i);
+            int selectedSequence = 0;
+            for (int i = 0; i <= sequenceAvailableSelection; i++) {
+                adapter.add(i);
+                if (i > 0 && sequenceGroups.get(i - 1).contains(exercise)) selectedSequence = i;
+            }
             sequenceSpinner.setAdapter(adapter);
+            sequenceSpinner.setSelection(selectedSequence);
 
             container.addView(sequenceView);
         }
 
         builder.setView(dialogView)
                 .setTitle("Definir exercícios em conjunto")
-                .setPositiveButton("Ok", null);
+                .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        for (int j = 0; j < sequenceAvailableSelection; j++) sequenceGroups.get(j).clear();
+
+                        for (int j = 0; j < container.getChildCount(); j++) {
+                            LinearLayout sequenceView = (LinearLayout) container.getChildAt(j);
+                            TextView exerciseTextView = sequenceView.findViewById(R.id.exerciseTextView);
+                            Spinner sequenceSpinner = sequenceView.findViewById(R.id.sequenceSpinner);
+
+                            int sequenceValue = Integer.parseInt(sequenceSpinner.getSelectedItem().toString());
+                            if (sequenceValue != 0) {
+                                sequenceGroups.get(sequenceValue - 1).add(exerciseTextView.getText().toString());
+                            }
+
+                        }
+                    }
+                });
 
         builder.create().show();
 
@@ -353,7 +384,7 @@ public class RegisterWorkoutFragment extends JsonFragment {
             String workoutName = workoutDate.getText().toString();
             HashMap<String, Object> workoutsExtractedMap = super.loadJsonData(WORKOUTS_FILE);
 
-            if (workoutsExtractedMap.keySet().contains(workoutName)) {
+            if (workoutsExtractedMap.containsKey(workoutName)) {
                 HashMap<String, HashMap> workout = (HashMap<String, HashMap>) workoutsExtractedMap.get(workoutName);
                 if (workout.keySet().contains("Series")) {
                     Toast.makeText(getContext(), "Já existe treinamento com está data", Toast.LENGTH_LONG).show();
@@ -365,10 +396,18 @@ public class RegisterWorkoutFragment extends JsonFragment {
 
             for (int i = 0; i < seriesList.size(); i++) {
                 ArrayList<Object> serieData = seriesList.get(i);
-                series.put((String) serieData.get(0), (HashMap) serieData.get(1));
+                HashMap<String, Object> exercisesMap = (HashMap) serieData.get(1);
+                ArrayList<ArrayList<String>> sequenceMap = (ArrayList<ArrayList<String>>) serieData.get(2);
+                for (ArrayList<String> sequence: sequenceMap) {
+                    if (sequence.stream().count() > 1) {
+                        for (String exercise: sequence) ((HashMap) exercisesMap.get(exercise)).put("Sequence", sequence);
+                    }
+                }
+                series.put((String) serieData.get(0), exercisesMap);
+
             }
 
-            if (workoutsExtractedMap.keySet().contains(workoutName)) {
+            if (workoutsExtractedMap.containsKey(workoutName)) {
                 HashMap<String, HashMap> workoutData = (HashMap<String, HashMap>) workoutsExtractedMap.get(workoutName);
                 workoutData.put("Series", series);
             } else {
