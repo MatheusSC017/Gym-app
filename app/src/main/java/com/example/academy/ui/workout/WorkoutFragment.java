@@ -29,6 +29,8 @@ import java.util.stream.Collectors;
 
 
 public class WorkoutFragment extends JsonFragment {
+    private static String WORKOUTS_FILE = "workouts.json";
+
     private LinearLayout workoutLayout;
     private Spinner workoutsSpinner;
     private Spinner exerciseSeriesSpinner;
@@ -55,6 +57,20 @@ public class WorkoutFragment extends JsonFragment {
         insertButton.setOnClickListener(event -> {
             if (getActivity() instanceof MainActivity) {
                 ((MainActivity) getActivity()).loadFragment(new RegisterWorkoutFragment());
+            }
+        });
+
+        editButton.setOnClickListener(event -> {
+            String workout = workoutsSpinner.getSelectedItem().toString();
+
+            Bundle bundle = new Bundle();
+            bundle.putString("workout", workout);
+
+            RegisterWorkoutFragment fragment = new RegisterWorkoutFragment();
+            fragment.setArguments(bundle);
+
+            if (getActivity() instanceof MainActivity) {
+                ((MainActivity) getActivity()).loadFragment(fragment);
             }
         });
 
@@ -122,6 +138,7 @@ public class WorkoutFragment extends JsonFragment {
 
     private void setupExerciseSeriesSpinner(String workoutId) {
         try {
+            workoutLayout.removeAllViews();
             seriesIds.clear();
             HashMap<String, Object> workout = (HashMap<String, Object>) workoutsMap.get(workoutId);
 

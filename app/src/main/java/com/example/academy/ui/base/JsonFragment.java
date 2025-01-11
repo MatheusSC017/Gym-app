@@ -2,7 +2,6 @@ package com.example.academy.ui.base;
 
 import com.google.gson.Gson;
 import android.content.Context;
-import android.util.Log;
 import android.widget.Toast;
 
 import androidx.fragment.app.Fragment;
@@ -19,7 +18,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 public class JsonFragment extends Fragment {
-    protected static String WORKOUTS_FILE = "workouts.json";
     private HashMap<String, Object> dataMap;
 
     public HashMap<String, Object> loadJsonData(String filePath) {

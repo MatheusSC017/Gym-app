@@ -7,7 +7,6 @@ import com.example.academy.view.EditTextDate;
 
 import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.os.Bundle;
 
 import android.view.LayoutInflater;
@@ -24,47 +23,41 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 public class RegisterWorkoutFragment extends JsonFragment {
-    Integer sequenceAvailableSelection = 9;
+    private static String WORKOUTS_FILE = "workouts.json";
+    private static Integer SEQUENCE_AVAILABLE_SELECTION = 9;
 
-    ArrayList<String> seriesNames = new ArrayList<>();
-    ArrayList<ArrayList<Object>> seriesList = new ArrayList<>();
-    HashMap<String, HashMap> exercisesSerie;
-    List<ArrayList<String>> sequenceGroups;
+    private static Boolean editable = false;
 
-    LinearLayout exerciseLinearLayout;
+    private List<String> seriesNames = new ArrayList<>();
+    private ArrayList<ArrayList<Object>> seriesList = new ArrayList<>();
+    private HashMap<String, HashMap> exercisesSerie;
+    private List<ArrayList<String>> sequenceGroups;
 
-    Spinner seriesSpinner;
-    EditTextDate workoutDate;
-    Button returnButton;
-    Button saveButton;
-    Button setLinksButton;
-    Button addSerieButton;
-    Button removeSerieButton;
-    Button addExerciseButton;
+    private LinearLayout exerciseLinearLayout;
+    private Spinner seriesSpinner;
+    private EditTextDate workoutDate;
+    private Button returnButton;
+    private Button saveButton;
+    private Button setLinksButton;
+    private Button addSerieButton;
+    private Button removeSerieButton;
+    private Button addExerciseButton;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_register_workout, container, false);
 
-        Date today = new Date();
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(today);
-
         workoutDate = view.findViewById(R.id.editTextDate);
-        String month;
-        if (calendar.get(Calendar.MONTH) <= 9)
-            month = "0" + (calendar.get(Calendar.MONTH) + 1);
-        else
-            month = String.valueOf(calendar.get(Calendar.MONTH) + 1);
-        workoutDate.setText(month + "/" + calendar.get(Calendar.YEAR));
-
         exerciseLinearLayout = view.findViewById(R.id.exerciseLinearLayout);
         seriesSpinner = view.findViewById(R.id.seriesSpinner);
 
@@ -87,6 +80,67 @@ public class RegisterWorkoutFragment extends JsonFragment {
         saveButton.setOnClickListener(event -> saveWorkout());
         setLinksButton.setOnClickListener(event -> showSetLinksDialog());
 
+        Bundle bundle = getArguments();
+        if (bundle != null) {
+            editable = true;
+
+            String workout = bundle.getString("workout");
+            workoutDate.setText(workout);
+
+            HashMap<String, Object> workouts = loadJsonData(WORKOUTS_FILE);
+            HashMap<String, HashMap> workoutData = (HashMap<String, HashMap>) workouts.getOrDefault(workout, null);
+            if (workoutData != null) {
+                HashMap<String, HashMap> seriesData = (HashMap<String, HashMap>) workoutData.getOrDefault("Series", new HashMap<String, HashMap>());
+                seriesNames = seriesData.keySet().stream().collect(Collectors.toList());
+
+                for (String serieName : seriesNames) {
+                    HashMap<String, HashMap> exercises = seriesData.get(serieName);
+
+                    ArrayList<ArrayList<String>> sequenceArray = new ArrayList<>();
+                    for (int i = 0; i < SEQUENCE_AVAILABLE_SELECTION; i++) sequenceArray.add(new ArrayList<>());
+
+                    if (exercises != null && !exercises.isEmpty()) {
+                        AtomicInteger sequenceCounter = new AtomicInteger(0);
+                        ArrayList<String> recordedSequenceExercises = new ArrayList<>();
+
+                        exercises.forEach((String exerciseName, HashMap exerciseData) -> {
+                            if (!recordedSequenceExercises.contains(exerciseName) &&
+                                    exerciseData.containsKey("Sequence") &&
+                                    ((ArrayList) exerciseData.get("Sequence")).size() > 0) {
+                                recordedSequenceExercises.addAll((ArrayList) exerciseData.get("Sequence"));
+                                int index = sequenceCounter.getAndIncrement();
+                                sequenceArray.get(index).add(exerciseName);
+                                sequenceArray.get(index).addAll((ArrayList) exerciseData.get("Sequence"));
+                            }
+                        });
+                    }
+
+                    ArrayList<Object> serie = new ArrayList<>();
+                    serie.add(serieName);
+                    serie.add(exercises);
+                    serie.add(sequenceArray);
+                    seriesList.add(serie);
+                }
+
+                if (!seriesNames.isEmpty()) {
+                    Collections.sort(seriesNames);
+                    seriesNames = seriesNames.stream().map(serieName -> serieName.substring(3)).collect(Collectors.toList());
+                    setSeriesSpinner();
+                }
+            }
+        } else {
+            Date today = new Date();
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(today);
+
+            String month;
+            if (calendar.get(Calendar.MONTH) <= 9)
+                month = "0" + (calendar.get(Calendar.MONTH) + 1);
+            else
+                month = String.valueOf(calendar.get(Calendar.MONTH) + 1);
+            workoutDate.setText(month + "/" + calendar.get(Calendar.YEAR));
+        }
+
         return view;
     }
 
@@ -106,27 +160,28 @@ public class RegisterWorkoutFragment extends JsonFragment {
         AlertDialog dialog = new AlertDialog.Builder(getContext()).setView(dialogView).setCancelable(false).create();
 
         cancelButton.setOnClickListener(event -> dialog.dismiss());
-
         submitButton.setOnClickListener(event -> {
-            int selectedSerieIndex = seriesSpinner.getSelectedItemPosition();
-            String serieName = registerEditText.getText().toString();
-            ArrayList<ArrayList<String>> sequenceArray = new ArrayList<>();
-            for (int i = 0; i < sequenceAvailableSelection; i++) sequenceArray.add(new ArrayList<>());
-
-            ArrayList<Object> serie = new ArrayList<>();
-            serie.add(serieName);
-            serie.add(new HashMap<>());
-            serie.add(sequenceArray);
-            seriesList.add(serie);
-            seriesNames.add(serieName);
-
-            setSeriesSpinner();
-            seriesSpinner.setSelection(selectedSerieIndex);
-
+            addNewSerie(registerEditText.getText().toString());
             dialog.dismiss();
         });
 
         dialog.show();
+    }
+
+    private void addNewSerie(String serieName) {
+        int selectedSerieIndex = seriesSpinner.getSelectedItemPosition();
+        ArrayList<ArrayList<String>> sequenceArray = new ArrayList<>();
+        for (int i = 0; i < SEQUENCE_AVAILABLE_SELECTION; i++) sequenceArray.add(new ArrayList<>());
+
+        ArrayList<Object> serie = new ArrayList<>();
+        serie.add(serieName);
+        serie.add(new HashMap<>());
+        serie.add(sequenceArray);
+        seriesList.add(serie);
+        seriesNames.add(serieName);
+
+        setSeriesSpinner();
+        seriesSpinner.setSelection(selectedSerieIndex);
     }
 
     private void removeSerie() {
@@ -340,7 +395,7 @@ public class RegisterWorkoutFragment extends JsonFragment {
             ArrayAdapter<Integer> adapter = new ArrayAdapter<>(context, android.R.layout.simple_spinner_item);
             adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             int selectedSequence = 0;
-            for (int i = 0; i <= sequenceAvailableSelection; i++) {
+            for (int i = 0; i <= SEQUENCE_AVAILABLE_SELECTION; i++) {
                 adapter.add(i);
                 if (i > 0 && sequenceGroups.get(i - 1).contains(exercise)) selectedSequence = i;
             }
@@ -352,22 +407,19 @@ public class RegisterWorkoutFragment extends JsonFragment {
 
         builder.setView(dialogView)
                 .setTitle("Definir exercícios em conjunto")
-                .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        for (int j = 0; j < sequenceAvailableSelection; j++) sequenceGroups.get(j).clear();
+                .setPositiveButton("Salvar", (dialogInterface, i) -> {
+                    for (int j = 0; j < SEQUENCE_AVAILABLE_SELECTION; j++) sequenceGroups.get(j).clear();
 
-                        for (int j = 0; j < container.getChildCount(); j++) {
-                            LinearLayout sequenceView = (LinearLayout) container.getChildAt(j);
-                            TextView exerciseTextView = sequenceView.findViewById(R.id.exerciseTextView);
-                            Spinner sequenceSpinner = sequenceView.findViewById(R.id.sequenceSpinner);
+                    for (int j = 0; j < container.getChildCount(); j++) {
+                        LinearLayout sequenceView = (LinearLayout) container.getChildAt(j);
+                        TextView exerciseTextView = sequenceView.findViewById(R.id.exerciseTextView);
+                        Spinner sequenceSpinner = sequenceView.findViewById(R.id.sequenceSpinner);
 
-                            int sequenceValue = Integer.parseInt(sequenceSpinner.getSelectedItem().toString());
-                            if (sequenceValue != 0) {
-                                sequenceGroups.get(sequenceValue - 1).add(exerciseTextView.getText().toString());
-                            }
-
+                        int sequenceValue = Integer.parseInt(sequenceSpinner.getSelectedItem().toString());
+                        if (sequenceValue != 0) {
+                            sequenceGroups.get(sequenceValue - 1).add(exerciseTextView.getText().toString());
                         }
+
                     }
                 });
 
@@ -386,7 +438,7 @@ public class RegisterWorkoutFragment extends JsonFragment {
 
             if (workoutsExtractedMap.containsKey(workoutName)) {
                 HashMap<String, HashMap> workout = (HashMap<String, HashMap>) workoutsExtractedMap.get(workoutName);
-                if (workout.keySet().contains("Series")) {
+                if (!editable && workout.keySet().contains("Series")) {
                     Toast.makeText(getContext(), "Já existe treinamento com está data", Toast.LENGTH_LONG).show();
                     return;
                 }
@@ -403,7 +455,7 @@ public class RegisterWorkoutFragment extends JsonFragment {
                         for (String exercise: sequence) ((HashMap) exercisesMap.get(exercise)).put("Sequence", sequence);
                     }
                 }
-                series.put((String) serieData.get(0), exercisesMap);
+                series.put(getLetter(i) + "- " + seriesNames.get(i), exercisesMap);
 
             }
 

@@ -99,22 +99,20 @@
             android:id="@+id/cancelButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@color/primary"
             android:text="Cancelar"
-            android:textColor="@color/black"
             app:backgroundTint="@null"
-            app:drawableTint="@null" />
+            app:drawableTint="@null"
+            style="@style/StandardButtonStyle" />
 
         <Button
             android:id="@+id/submitButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
-            android:background="@color/primary"
             android:text="Enviar"
-            android:textColor="@color/black"
             app:backgroundTint="@null"
-            app:drawableTint="@null" />
+            app:drawableTint="@null"
+            style="@style/StandardButtonStyle" />
 
     </LinearLayout>
 
