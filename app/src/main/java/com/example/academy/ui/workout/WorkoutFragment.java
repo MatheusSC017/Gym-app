@@ -1,5 +1,6 @@
 package com.example.academy.ui.workout;
 
+import android.app.AlertDialog;
 import android.os.Bundle;
 
 import androidx.annotation.Nullable;
@@ -39,6 +40,7 @@ public class WorkoutFragment extends JsonFragment {
     private List<String> seriesIds = new ArrayList<>();
     private Button insertButton;
     private Button editButton;
+    private Button deleteButton;
     private Button loadButton;
     private HashMap<String, Object> workoutsMap;
 
@@ -49,6 +51,7 @@ public class WorkoutFragment extends JsonFragment {
 
         insertButton = view.findViewById(R.id.insertButton);
         editButton = view.findViewById(R.id.editButton);
+        deleteButton = view.findViewById(R.id.deleteButton);
         loadButton = view.findViewById(R.id.loadButton);
         workoutLayout = view.findViewById(R.id.workoutLayout);
         workoutsSpinner = view.findViewById(R.id.workoutsSpinner);
@@ -74,15 +77,12 @@ public class WorkoutFragment extends JsonFragment {
             }
         });
 
+        deleteButton.setOnClickListener(event -> deleteWorkout());
+
         workoutsMap = loadJsonData(WORKOUTS_FILE);
         setupWorkoutSpinner();
 
         return view;
-    }
-
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
     }
 
     public HashMap<String, Object> loadJsonData(String filePath) {
@@ -115,6 +115,24 @@ public class WorkoutFragment extends JsonFragment {
         } catch (Exception e) {
             Toast.makeText(requireContext(), "Error extracting workouts: " + e.getMessage(), Toast.LENGTH_LONG).show();
             return null;
+        }
+    }
+
+    private void deleteWorkout() {
+        String workout = workoutsSpinner.getSelectedItem().toString();
+
+        if (!workout.equals("")) {
+            AlertDialog dialog = new AlertDialog.Builder(getContext())
+                    .setTitle("Deseja confirmar a exclusão deste treinamento?")
+                    .setPositiveButton("Confirmar", ((dialogInterface, i) -> {
+                        workoutsIds.remove(workoutsIds.indexOf(workout));
+                        setupWorkoutSpinner();
+                        workoutsMap.remove(workout);
+                        saveToInternalStorage(workoutsMap, WORKOUTS_FILE);
+                    })).setNegativeButton("Cancelar", ((dialogInterface, i) -> {
+                        // Do nothing
+                    })).create();
+            dialog.show();
         }
     }
 
