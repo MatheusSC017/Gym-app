@@ -3,8 +3,6 @@ package com.example.academy.ui.workout;
 import android.app.AlertDialog;
 import android.os.Bundle;
 
-import androidx.annotation.Nullable;
-
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -63,19 +61,7 @@ public class WorkoutFragment extends JsonFragment {
             }
         });
 
-        editButton.setOnClickListener(event -> {
-            String workout = workoutsSpinner.getSelectedItem().toString();
-
-            Bundle bundle = new Bundle();
-            bundle.putString("workout", workout);
-
-            RegisterWorkoutFragment fragment = new RegisterWorkoutFragment();
-            fragment.setArguments(bundle);
-
-            if (getActivity() instanceof MainActivity) {
-                ((MainActivity) getActivity()).loadFragment(fragment);
-            }
-        });
+        editButton.setOnClickListener(event -> navigateEditWorkout());
 
         deleteButton.setOnClickListener(event -> deleteWorkout());
 
@@ -115,6 +101,20 @@ public class WorkoutFragment extends JsonFragment {
         } catch (Exception e) {
             Toast.makeText(requireContext(), "Error extracting workouts: " + e.getMessage(), Toast.LENGTH_LONG).show();
             return null;
+        }
+    }
+
+    public void navigateEditWorkout() {
+        String workout = workoutsSpinner.getSelectedItem().toString();
+
+        Bundle bundle = new Bundle();
+        bundle.putString("workout", workout);
+
+        RegisterWorkoutFragment fragment = new RegisterWorkoutFragment();
+        fragment.setArguments(bundle);
+
+        if (getActivity() instanceof MainActivity) {
+            ((MainActivity) getActivity()).loadFragment(fragment);
         }
     }
 
