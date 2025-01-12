@@ -2,12 +2,12 @@ package com.example.academy.ui.workout;
 
 import com.example.academy.MainActivity;
 import com.example.academy.R;
+import com.example.academy.ui.base.JsonFragment;
 import com.example.academy.view.EditTextDate;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.os.Bundle;
-
-import androidx.fragment.app.Fragment;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -23,45 +23,46 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
-public class RegisterWorkoutFragment extends Fragment {
-    ArrayList<String> seriesNames = new ArrayList<>();
-    ArrayList<ArrayList<Object>> seriesList = new ArrayList<>();
+public class RegisterWorkoutFragment extends JsonFragment {
+    private static String WORKOUTS_FILE = "workouts.json";
+    private static Integer SEQUENCE_AVAILABLE_SELECTION = 9;
 
-    LinearLayout exerciseLinearLayout;
+    private static Boolean editable = false;
 
-    Spinner seriesSpinner;
-    EditTextDate workoutDate;
-    Button returnButton;
-    Button saveButton;
-    Button addSerieButton;
-    Button removeSerieButton;
-    Button addExerciseButton;
+    private List<String> seriesNames = new ArrayList<>();
+    private ArrayList<ArrayList<Object>> seriesList = new ArrayList<>();
+    private HashMap<String, HashMap> exercisesSerie;
+    private List<ArrayList<String>> sequenceGroups;
+
+    private LinearLayout exerciseLinearLayout;
+    private Spinner seriesSpinner;
+    private EditTextDate workoutDate;
+    private Button returnButton;
+    private Button saveButton;
+    private Button setLinksButton;
+    private Button addSerieButton;
+    private Button removeSerieButton;
+    private Button addExerciseButton;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_register_workout, container, false);
 
-        Date today = new Date();
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(today);
-
         workoutDate = view.findViewById(R.id.editTextDate);
-        String month;
-        if (calendar.get(Calendar.MONTH) <= 9)
-            month = "0" + (calendar.get(Calendar.MONTH) + 1);
-        else
-            month = String.valueOf(calendar.get(Calendar.MONTH) + 1);
-        workoutDate.setText(month + "/" + calendar.get(Calendar.YEAR));
-
         exerciseLinearLayout = view.findViewById(R.id.exerciseLinearLayout);
         seriesSpinner = view.findViewById(R.id.seriesSpinner);
 
         returnButton = view.findViewById(R.id.returnButton);
         saveButton = view.findViewById(R.id.saveButton);
+        setLinksButton = view.findViewById(R.id.setLinksButton);
         addSerieButton = view.findViewById(R.id.addSerieButton);
         removeSerieButton = view.findViewById(R.id.removeSerieButton);
         addExerciseButton = view.findViewById(R.id.addExerciseButton);
@@ -71,13 +72,85 @@ public class RegisterWorkoutFragment extends Fragment {
                 ((MainActivity) getActivity()).loadFragment(new WorkoutFragment());
             }
         });
-
         addSerieButton.setOnClickListener(event -> showSerieRegisterDialog());
         removeSerieButton.setOnClickListener(event -> removeSerie());
         addExerciseButton.setOnClickListener(event -> showExerciseRegisterDialog());
         saveButton.setOnClickListener(event -> saveWorkout());
+        setLinksButton.setOnClickListener(event -> showSetLinksDialog());
+
+        Bundle bundle = getArguments();
+        if (bundle != null) {
+            editable = true;
+
+            String workout = bundle.getString("workout");
+            loadWorkoutData(workout);
+        } else {
+            setWorkoutDate();
+        }
 
         return view;
+    }
+
+    private void loadWorkoutData(String workout) {
+        workoutDate.setText(workout);
+
+        HashMap<String, Object> workouts = loadJsonData(WORKOUTS_FILE);
+        HashMap<String, HashMap> workoutData = (HashMap<String, HashMap>) workouts.getOrDefault(workout, null);
+        if (workoutData != null) {
+            HashMap<String, HashMap> seriesData = (HashMap<String, HashMap>) workoutData.getOrDefault("Series", new HashMap<String, HashMap>());
+            seriesNames = seriesData.keySet().stream().collect(Collectors.toList());
+
+            for (String serieName : seriesNames) {
+                HashMap<String, HashMap> exercises = seriesData.get(serieName);
+
+                ArrayList<Object> serie = new ArrayList<>();
+                serie.add(serieName);
+                serie.add(exercises);
+                serie.add(loadSequenceArray(exercises));
+                seriesList.add(serie);
+            }
+
+            if (!seriesNames.isEmpty()) {
+                Collections.sort(seriesNames);
+                seriesNames = seriesNames.stream().map(serieName -> serieName.substring(3)).collect(Collectors.toList());
+                setSeriesSpinner();
+            }
+        }
+    }
+
+    private ArrayList<ArrayList<String>> loadSequenceArray(HashMap<String, HashMap> exercises) {
+        ArrayList<ArrayList<String>> sequenceArray = new ArrayList<>();
+        for (int i = 0; i < SEQUENCE_AVAILABLE_SELECTION; i++) sequenceArray.add(new ArrayList<>());
+
+        if (exercises != null && !exercises.isEmpty()) {
+            AtomicInteger sequenceCounter = new AtomicInteger(0);
+            ArrayList<String> recordedSequenceExercises = new ArrayList<>();
+
+            exercises.forEach((String exerciseName, HashMap exerciseData) -> {
+                if (!recordedSequenceExercises.contains(exerciseName) &&
+                        exerciseData.containsKey("Sequence") &&
+                        ((ArrayList) exerciseData.get("Sequence")).size() > 0) {
+                    recordedSequenceExercises.addAll((ArrayList) exerciseData.get("Sequence"));
+                    int index = sequenceCounter.getAndIncrement();
+                    sequenceArray.get(index).add(exerciseName);
+                    sequenceArray.get(index).addAll((ArrayList) exerciseData.get("Sequence"));
+                }
+            });
+        }
+        return  sequenceArray;
+    }
+
+    public void setWorkoutDate() {
+        Date today = new Date();
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(today);
+
+        String month;
+        if (calendar.get(Calendar.MONTH) <= 9)
+            month = "0" + (calendar.get(Calendar.MONTH) + 1);
+        else
+            month = String.valueOf(calendar.get(Calendar.MONTH) + 1);
+        workoutDate.setText(month + "/" + calendar.get(Calendar.YEAR));
     }
 
     private void showSerieRegisterDialog() {
@@ -96,22 +169,28 @@ public class RegisterWorkoutFragment extends Fragment {
         AlertDialog dialog = new AlertDialog.Builder(getContext()).setView(dialogView).setCancelable(false).create();
 
         cancelButton.setOnClickListener(event -> dialog.dismiss());
-
         submitButton.setOnClickListener(event -> {
-            String serieName = registerEditText.getText().toString();
-
-            ArrayList<Object> serie = new ArrayList<>();
-            serie.add(serieName);
-            serie.add(new HashMap());
-            seriesList.add(serie);
-            seriesNames.add(serieName);
-
-            setSeriesSpinner();
-
+            addNewSerie(registerEditText.getText().toString());
             dialog.dismiss();
         });
 
         dialog.show();
+    }
+
+    private void addNewSerie(String serieName) {
+        int selectedSerieIndex = seriesSpinner.getSelectedItemPosition();
+        ArrayList<ArrayList<String>> sequenceArray = new ArrayList<>();
+        for (int i = 0; i < SEQUENCE_AVAILABLE_SELECTION; i++) sequenceArray.add(new ArrayList<>());
+
+        ArrayList<Object> serie = new ArrayList<>();
+        serie.add(serieName);
+        serie.add(new HashMap<>());
+        serie.add(sequenceArray);
+        seriesList.add(serie);
+        seriesNames.add(serieName);
+
+        setSeriesSpinner();
+        seriesSpinner.setSelection(selectedSerieIndex);
     }
 
     private void removeSerie() {
@@ -139,11 +218,11 @@ public class RegisterWorkoutFragment extends Fragment {
         seriesSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
-                ArrayList<Object> serie = seriesList.get(position);
-                HashMap<String, HashMap> exercises = (HashMap<String, HashMap>) serie.get(1);
+                exercisesSerie = (HashMap<String, HashMap>) seriesList.get(position).get(1);
+                sequenceGroups = (List<ArrayList<String>>) seriesList.get(position).get(2);
 
                 exerciseLinearLayout.removeAllViews();
-                exercises.forEach((exerciseName, exerciseData) -> {
+                exercisesSerie.forEach((exerciseName, exerciseData) -> {
                     setupExerciseCard(exerciseLinearLayout, exerciseName, exerciseData);
                 });
             }
@@ -156,74 +235,61 @@ public class RegisterWorkoutFragment extends Fragment {
 
     }
 
-    private static String getLetter(int number) {
-        StringBuilder stringBuilder = new StringBuilder();
-        while (number >= 0) {
-            stringBuilder.insert(0, (char) ('A' + (number % 26)));
-            number = (number / 26) - 1;
-        }
-        return stringBuilder.toString();
-    }
-
     private void showExerciseRegisterDialog() {
         Object serieSelected = seriesSpinner.getSelectedItem();
 
         if (serieSelected != null) {
             LayoutInflater layoutInflater = LayoutInflater.from(getContext());
             View dialogView = layoutInflater.inflate(R.layout.dialog_exercise_register, null);
-
             Button cancelButton = dialogView.findViewById(R.id.cancelButton);
             Button saveButton = dialogView.findViewById(R.id.submitButton);
 
-            AlertDialog dialog = new AlertDialog.Builder(getContext()).setView(dialogView).setCancelable(false).create();
-
-            cancelButton.setOnClickListener(event -> dialog.dismiss());
-
+            AlertDialog registerDialog = new AlertDialog.Builder(getContext()).setView(dialogView).setCancelable(false).create();
+            cancelButton.setOnClickListener(event -> registerDialog.dismiss());
             saveButton.setOnClickListener(event -> {
-                EditText exerciseEditText = dialogView.findViewById(R.id.exerciseEditText);
-                EditText seriesEditText = dialogView.findViewById(R.id.seriesEditText);
-                EditText typeEditText = dialogView.findViewById(R.id.typeEditText);
-                EditText quantityEditText = dialogView.findViewById(R.id.quantityEditText);
-                EditText muscleEditText = dialogView.findViewById(R.id.muscleEditText);
-//                EditText sequenceEditText = dialogView.findViewById(R.id.sequenceEditText);
-                EditText observationEditText = dialogView.findViewById(R.id.observationEditText);
+                addExercise(dialogView);
 
-                if (exerciseEditText.getText().length() == 0 ||
-                        seriesEditText.getText().length() == 0 ||
-                        typeEditText.getText().length() == 0 ||
-                        quantityEditText.getText().length() == 0) {
-                    Toast.makeText(getContext(), "Campos obrigatórios (Exercício, Series, Tipo e Quantidade)", Toast.LENGTH_LONG).show();
-                    return;
-                }
-
-                Integer serieIndex = seriesSpinner.getSelectedItemPosition();
-                HashMap<String, HashMap> serieMap = (HashMap<String, HashMap>) seriesList.get(serieIndex).get(1);
-
-                if (serieMap.keySet().contains(exerciseEditText.getText().toString())) {
-                    Toast.makeText(getContext(), "Registro já existente", Toast.LENGTH_LONG).show();
-                    return;
-                }
-
-                HashMap<String, String> exerciseMap = new HashMap<>();
-
-                exerciseMap.put("Series", seriesEditText.getText().toString());
-                exerciseMap.put("Type", typeEditText.getText().toString());
-                exerciseMap.put("Quantity", quantityEditText.getText().toString());
-                exerciseMap.put("Muscle", muscleEditText.getText().toString());
-                exerciseMap.put("Observation", observationEditText.getText().toString());
-
-                serieMap.put(exerciseEditText.getText().toString(), exerciseMap);
-
-                setupExerciseCard(exerciseLinearLayout, exerciseEditText.getText().toString(), exerciseMap);
-
-                dialog.dismiss();
+                registerDialog.dismiss();
             });
-
-            dialog.show();
+            registerDialog.show();
         }
     }
 
-    private void setupExerciseCard(LinearLayout layout, String exercise, HashMap<String, String>  exerciseData) {
+    private void addExercise(View dialogView) {
+        EditText exerciseEditText = dialogView.findViewById(R.id.exerciseEditText);
+        EditText seriesEditText = dialogView.findViewById(R.id.seriesEditText);
+        EditText typeEditText = dialogView.findViewById(R.id.typeEditText);
+        EditText quantityEditText = dialogView.findViewById(R.id.quantityEditText);
+        EditText muscleEditText = dialogView.findViewById(R.id.muscleEditText);
+        EditText observationEditText = dialogView.findViewById(R.id.observationEditText);
+
+        if (exerciseEditText.getText().length() == 0 ||
+                seriesEditText.getText().length() == 0 ||
+                typeEditText.getText().length() == 0 ||
+                quantityEditText.getText().length() == 0) {
+            Toast.makeText(getContext(), "Campos obrigatórios (Exercício, Series, Tipo e Quantidade)", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        if (exercisesSerie.keySet().contains(exerciseEditText.getText().toString())) {
+            Toast.makeText(getContext(), "Registro já existente", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        HashMap<String, Object> exerciseMap = new HashMap<>();
+
+        exerciseMap.put("Series", seriesEditText.getText().toString());
+        exerciseMap.put("Type", typeEditText.getText().toString());
+        exerciseMap.put("Quantity", quantityEditText.getText().toString());
+        exerciseMap.put("Muscle", muscleEditText.getText().toString());
+        exerciseMap.put("Observation", observationEditText.getText().toString());
+
+        exercisesSerie.put(exerciseEditText.getText().toString(), exerciseMap);
+
+        setupExerciseCard(exerciseLinearLayout, exerciseEditText.getText().toString(), exerciseMap);
+    }
+
+    private void setupExerciseCard(LinearLayout layout, String exercise, HashMap<String, Object>  exerciseData) {
         View exerciseCard = LayoutInflater.from(getContext()).inflate(R.layout.register_exercise_layout, layout, false);
 
         TextView exerciseTextView = exerciseCard.findViewById(R.id.exerciseTextView);
@@ -232,7 +298,8 @@ public class RegisterWorkoutFragment extends Fragment {
         Button editExerciseButton = exerciseCard.findViewById(R.id.editExerciseButton);
         Button removeExerciseButton = exerciseCard.findViewById(R.id.removeExerciseButton);
 
-        removeExerciseButton.setOnClickListener(event -> removeExercise(exercise));
+        editExerciseButton.setOnClickListener(event -> showEditExerciseDialog(exerciseTextView.getText().toString()));
+        removeExerciseButton.setOnClickListener(event -> removeExercise(exerciseTextView.getText().toString()));
 
         exerciseTextView.setText(exercise);
         String series = exerciseData.getOrDefault("Series", "1").toString();
@@ -242,10 +309,67 @@ public class RegisterWorkoutFragment extends Fragment {
         layout.addView(exerciseCard);
     }
 
+    private void showEditExerciseDialog(String exercise) {
+        HashMap<String, String> exerciseData = exercisesSerie.get(exercise);
+
+        LayoutInflater layoutInflater = LayoutInflater.from(getContext());
+        View dialogView = layoutInflater.inflate(R.layout.dialog_exercise_register, null);
+
+        EditText exerciseEditText = dialogView.findViewById(R.id.exerciseEditText);
+        exerciseEditText.setText(exercise);
+        EditText seriesEditText = dialogView.findViewById(R.id.seriesEditText);
+        seriesEditText.setText(exerciseData.getOrDefault("Series", ""));
+        EditText typeEditText = dialogView.findViewById(R.id.typeEditText);
+        typeEditText.setText(exerciseData.getOrDefault("Type", ""));
+        EditText quantityEditText = dialogView.findViewById(R.id.quantityEditText);
+        quantityEditText.setText(exerciseData.getOrDefault("Quantity", ""));
+        EditText muscleEditText = dialogView.findViewById(R.id.muscleEditText);
+        muscleEditText.setText(exerciseData.getOrDefault("Muscle", ""));
+        EditText observationEditText = dialogView.findViewById(R.id.observationEditText);
+        observationEditText.setText(exerciseData.getOrDefault("Observation", ""));
+
+        Button cancelButton = dialogView.findViewById(R.id.cancelButton);
+        Button saveButton = dialogView.findViewById(R.id.submitButton);
+
+        AlertDialog dialog = new AlertDialog.Builder(getContext()).setView(dialogView).setCancelable(false).create();
+
+        cancelButton.setOnClickListener(event -> dialog.dismiss());
+        saveButton.setOnClickListener(event -> {
+            exerciseData.put("Series", seriesEditText.getText().toString());
+            exerciseData.put("Type", typeEditText.getText().toString());
+            exerciseData.put("Quantity", quantityEditText.getText().toString());
+            exerciseData.put("Muscle", muscleEditText.getText().toString());
+            exerciseData.put("Observation", observationEditText.getText().toString());
+
+            if (!exerciseEditText.getText().toString().equals(exercise)) {
+                exercisesSerie.remove(exercise);
+                exercisesSerie.put(exerciseEditText.getText().toString(), exerciseData);
+            }
+
+            for (int i = 0; i <= exerciseLinearLayout.getChildCount(); i++) {
+                View exerciseCard = exerciseLinearLayout.getChildAt(i);
+                TextView exerciseTextView = exerciseCard.findViewById(R.id.exerciseTextView);
+                if (exerciseTextView != null && exerciseTextView.getText().toString().equals(exercise)) {
+                    TextView seriesTextView = exerciseCard.findViewById(R.id.seriesTextView);
+                    TextView repetitionsTextView = exerciseCard.findViewById(R.id.repetitionsTextView);
+
+                    exerciseTextView.setText(exerciseEditText.getText().toString());
+                    String series = exerciseData.getOrDefault("Series", "1").toString();
+                    if (!series.equals("1")) seriesTextView.setText(series + " x");
+                    repetitionsTextView.setText(exerciseData.getOrDefault("Quantity", "").toString() + " " + exerciseData.getOrDefault("Type", "").toString());
+
+                    break;
+                }
+            }
+
+            dialog.dismiss();
+        });
+
+        dialog.show();
+    }
+
     private void removeExercise(String exercise) {
-        Integer serieIndex = seriesSpinner.getSelectedItemPosition();
-        HashMap<String, HashMap> serieMap = (HashMap<String, HashMap>) seriesList.get(serieIndex).get(1);
-        serieMap.remove(exercise);
+        exercisesSerie.remove(exercise);
 
         for (int i = 0; i <= exerciseLinearLayout.getChildCount(); i++) {
             View exerciseCard = exerciseLinearLayout.getChildAt(i);
@@ -258,13 +382,120 @@ public class RegisterWorkoutFragment extends Fragment {
 
     }
 
+    private void showSetLinksDialog() {
+        Context context = getContext();
+        if (exercisesSerie.isEmpty()) {
+            Toast.makeText(context, "Nenhum exercício cadastrado", Toast.LENGTH_LONG).show();
+            return;
+        }
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+
+        LayoutInflater inflater = LayoutInflater.from(context);
+        View dialogView = inflater.inflate(R.layout.dialog_scroll_view, null);
+        LinearLayout container = dialogView.findViewById(R.id.container);
+
+        for (String exercise: exercisesSerie.keySet()) {
+            View sequenceView = inflater.inflate(R.layout.sequence_selection_layout, container, false);
+
+            TextView exerciseTextView = sequenceView.findViewById(R.id.exerciseTextView);
+            Spinner sequenceSpinner = sequenceView.findViewById(R.id.sequenceSpinner);
+
+            exerciseTextView.setText(exercise);
+            ArrayAdapter<Integer> adapter = new ArrayAdapter<>(context, android.R.layout.simple_spinner_item);
+            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            int selectedSequence = 0;
+            for (int i = 0; i <= SEQUENCE_AVAILABLE_SELECTION; i++) {
+                adapter.add(i);
+                if (i > 0 && sequenceGroups.get(i - 1).contains(exercise)) selectedSequence = i;
+            }
+            sequenceSpinner.setAdapter(adapter);
+            sequenceSpinner.setSelection(selectedSequence);
+
+            container.addView(sequenceView);
+        }
+
+        builder.setView(dialogView)
+                .setTitle("Definir exercícios em conjunto")
+                .setPositiveButton("Salvar", (dialogInterface, i) -> setLinks(container));
+
+        builder.create().show();
+
+    }
+
+    private void setLinks(LinearLayout container) {
+        for (int j = 0; j < SEQUENCE_AVAILABLE_SELECTION; j++) sequenceGroups.get(j).clear();
+
+        for (int j = 0; j < container.getChildCount(); j++) {
+            LinearLayout sequenceView = (LinearLayout) container.getChildAt(j);
+            TextView exerciseTextView = sequenceView.findViewById(R.id.exerciseTextView);
+            Spinner sequenceSpinner = sequenceView.findViewById(R.id.sequenceSpinner);
+
+            int sequenceValue = Integer.parseInt(sequenceSpinner.getSelectedItem().toString());
+            if (sequenceValue != 0) {
+                sequenceGroups.get(sequenceValue - 1).add(exerciseTextView.getText().toString());
+            }
+
+        }
+    }
+
     private void saveWorkout() {
         if (workoutDate.getText().length() != 7) {
             Toast.makeText(getContext(), "Insira a data da avaliação", Toast.LENGTH_LONG).show();
             return;
         }
+        try {
+            String workoutName = workoutDate.getText().toString();
+            HashMap<String, Object> workoutsExtractedMap = super.loadJsonData(WORKOUTS_FILE);
 
-        Toast.makeText(getContext(), "Treinamento salvo", Toast.LENGTH_LONG).show();
+            if (workoutsExtractedMap.containsKey(workoutName)) {
+                HashMap<String, HashMap> workout = (HashMap<String, HashMap>) workoutsExtractedMap.get(workoutName);
+                if (!editable && workout.keySet().contains("Series")) {
+                    Toast.makeText(getContext(), "Já existe treinamento com está data", Toast.LENGTH_LONG).show();
+                    return;
+                }
+            }
+
+            HashMap<String, HashMap> series = new HashMap<>();
+
+            for (int i = 0; i < seriesList.size(); i++) {
+                ArrayList<Object> serieData = seriesList.get(i);
+                HashMap<String, Object> exercisesMap = (HashMap) serieData.get(1);
+                ArrayList<ArrayList<String>> sequenceMap = (ArrayList<ArrayList<String>>) serieData.get(2);
+                for (ArrayList<String> sequence: sequenceMap) {
+                    if (sequence.stream().count() > 1) {
+                        for (String exercise: sequence) ((HashMap) exercisesMap.get(exercise)).put("Sequence", sequence);
+                    }
+                }
+                series.put(getLetter(i) + "- " + seriesNames.get(i), exercisesMap);
+
+            }
+
+            if (workoutsExtractedMap.containsKey(workoutName)) {
+                HashMap<String, HashMap> workoutData = (HashMap<String, HashMap>) workoutsExtractedMap.get(workoutName);
+                workoutData.put("Series", series);
+            } else {
+                HashMap<String, HashMap> workoutData = new HashMap<>();
+                workoutData.put("Series", series);
+                workoutsExtractedMap.put(workoutName, workoutData);
+            }
+            saveToInternalStorage(workoutsExtractedMap, WORKOUTS_FILE);
+
+            Toast.makeText(getContext(), "Treinamento salvo", Toast.LENGTH_LONG).show();
+            if (getActivity() instanceof MainActivity) {
+                ((MainActivity) getActivity()).loadFragment(new WorkoutFragment());
+            }
+        } catch (Exception e) {
+            Toast.makeText(requireContext(), "Error extracting workouts: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private static String getLetter(int number) {
+        StringBuilder stringBuilder = new StringBuilder();
+        while (number >= 0) {
+            stringBuilder.insert(0, (char) ('A' + (number % 26)));
+            number = (number / 26) - 1;
+        }
+        return stringBuilder.toString();
     }
 
 }

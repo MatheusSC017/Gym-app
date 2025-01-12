@@ -2,7 +2,6 @@ package com.example.academy.ui.base;
 
 import com.google.gson.Gson;
 import android.content.Context;
-import android.util.Log;
 import android.widget.Toast;
 
 import androidx.fragment.app.Fragment;
@@ -75,7 +74,6 @@ public class JsonFragment extends Fragment {
         try (FileOutputStream fos = context.openFileOutput(filePath, Context.MODE_PRIVATE)) {
             String jsonData = gson.toJson(mapData);
             fos.write(jsonData.toString().getBytes());
-            Toast.makeText(requireContext(), "File saved!", Toast.LENGTH_SHORT).show();
         } catch (Exception e) {
             Toast.makeText(requireContext(), "Error saving file: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
