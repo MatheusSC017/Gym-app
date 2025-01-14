@@ -19,11 +19,16 @@ import com.example.academy.MainActivity;
 import com.example.academy.R;
 import com.example.academy.ui.base.JsonFragment;
 
+import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 
@@ -238,10 +243,13 @@ public class WorkoutFragment extends JsonFragment {
         View exerciseCard = LayoutInflater.from(getContext()).inflate(R.layout.exercise_layout, layout, false);
 
         TextView exerciseTextView = exerciseCard.findViewById(R.id.exerciseTextView);
+        TextView muscleTextView = exerciseCard.findViewById(R.id.muscleTextView);
         TextView seriesTextView = exerciseCard.findViewById(R.id.seriesTextView);
         TextView repetitionsTextView = exerciseCard.findViewById(R.id.repetitionsTextView);
 
         exerciseTextView.setText(exercise);
+        muscleTextView.setText(exerciseData.get("Muscle").toString());
+
         String series = exerciseData.getOrDefault("Series", "1").toString();
         if (!series.equals("1")) seriesTextView.setText(series + " x");
 

@@ -226,6 +226,8 @@ public class RegisterWorkoutFragment extends JsonFragment {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
                 exercisesSerie = (HashMap<String, HashMap>) seriesList.get(position).get(1);
+
+
                 sequenceGroups = (List<ArrayList<String>>) seriesList.get(position).get(2);
 
                 exerciseLinearLayout.removeAllViews();
@@ -304,6 +306,7 @@ public class RegisterWorkoutFragment extends JsonFragment {
         View exerciseCard = LayoutInflater.from(getContext()).inflate(R.layout.register_exercise_layout, layout, false);
 
         TextView exerciseTextView = exerciseCard.findViewById(R.id.exerciseTextView);
+        TextView muscleTextView = exerciseCard.findViewById(R.id.muscleTextView);
         TextView seriesTextView = exerciseCard.findViewById(R.id.seriesTextView);
         TextView repetitionsTextView = exerciseCard.findViewById(R.id.repetitionsTextView);
         Button editExerciseButton = exerciseCard.findViewById(R.id.editExerciseButton);
@@ -313,6 +316,7 @@ public class RegisterWorkoutFragment extends JsonFragment {
         removeExerciseButton.setOnClickListener(event -> removeExercise(exerciseTextView.getText().toString()));
 
         exerciseTextView.setText(exercise);
+        muscleTextView.setText(exerciseData.get("Muscle").toString());
         String series = exerciseData.getOrDefault("Series", "1").toString();
         if (!series.equals("1")) seriesTextView.setText(series + " x");
         repetitionsTextView.setText(exerciseData.getOrDefault("Quantity", "").toString() + " " + exerciseData.getOrDefault("Type", "").toString());
