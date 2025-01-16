@@ -134,6 +134,7 @@ public class PersonalFragment extends JsonFragment {
     private void setupPersonalDataSubItems(HashMap<String, Object> personalData, LinearLayout layout) {
         Context context = getContext();
 
+        layout.removeAllViews();
         personalData.forEach((String measure, Object value) -> {
             TextView personalValueTextView = new TextView(context);
             personalValueTextView.setText(measure + ": " + String.valueOf(value));

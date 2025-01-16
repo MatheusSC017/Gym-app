@@ -39,7 +39,6 @@ public class WorkoutFragment extends JsonFragment {
     private Button insertButton;
     private Button editButton;
     private Button deleteButton;
-    private Button loadButton;
     private HashMap<String, Object> workoutsMap;
 
     @Override
@@ -50,7 +49,6 @@ public class WorkoutFragment extends JsonFragment {
         insertButton = view.findViewById(R.id.insertButton);
         editButton = view.findViewById(R.id.editButton);
         deleteButton = view.findViewById(R.id.deleteButton);
-        loadButton = view.findViewById(R.id.loadButton);
         workoutLayout = view.findViewById(R.id.workoutLayout);
         workoutsSpinner = view.findViewById(R.id.workoutsSpinner);
         exerciseSeriesSpinner = view.findViewById(R.id.exerciseSeriesSpinner);

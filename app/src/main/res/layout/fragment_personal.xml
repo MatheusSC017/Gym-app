@@ -138,19 +138,41 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical">
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:id="@+id/measuresTextView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Medidas"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
 
                 <LinearLayout
                     android:id="@+id/measurementLayout"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:orientation="vertical"></LinearLayout>
+                    android:layout_marginBottom="16dp"
+                    android:orientation="vertical"
+                    android:paddingLeft="8dp"
+                    android:paddingTop="8dp"/>
+
+                <TextView
+                    android:id="@+id/foldsTextView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Dobras"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
 
                 <LinearLayout
                     android:id="@+id/foldsMeasurementsLayout"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:orientation="vertical"></LinearLayout>
+                    android:orientation="vertical"
+                    android:paddingLeft="8dp"
+                    android:paddingTop="8dp"/>
             </LinearLayout>
         </ScrollView>
 
@@ -204,19 +226,6 @@
                 app:backgroundTint="@null"
                 app:drawableTint="@null" />
 
-            <Space
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1" />
-
-            <Button
-                android:id="@+id/loadButton"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:background="@android:drawable/ic_menu_upload"
-                android:backgroundTint="@color/black"
-                app:backgroundTint="@null"
-                app:drawableTint="@null" />
         </LinearLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
 
