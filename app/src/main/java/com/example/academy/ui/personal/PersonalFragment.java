@@ -10,13 +10,16 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.academy.MainActivity;
 import com.example.academy.R;
 import com.example.academy.ui.base.JsonFragment;
+import com.example.academy.ui.workout.RegisterWorkoutFragment;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -28,14 +31,15 @@ public class PersonalFragment extends JsonFragment {
     private static String WORKOUTS_FILE = "workouts.json";
 
     private Spinner workoutsSpinner;
-    TextView imcTextView;
-    TextView heightTextView;
-    TextView weightTextView;
-    TextView fatPercentageTextView;
-    TextView leanBodyMassTextView;
-    TextView fatWeightTextView;
-    LinearLayout measurementLayout;
-    LinearLayout foldsMeasurementsLayout;
+    private TextView imcTextView;
+    private TextView heightTextView;
+    private TextView weightTextView;
+    private TextView fatPercentageTextView;
+    private TextView leanBodyMassTextView;
+    private TextView fatWeightTextView;
+    private LinearLayout measurementLayout;
+    private LinearLayout foldsMeasurementsLayout;
+    private Button insertButton;
 
     private List<String> personalIds = new ArrayList<>();
     private HashMap<String, Object> personalDataMap;
@@ -54,6 +58,13 @@ public class PersonalFragment extends JsonFragment {
         fatWeightTextView = view.findViewById(R.id.fatWeightTextView);
         measurementLayout = view.findViewById(R.id.measurementLayout);
         foldsMeasurementsLayout = view.findViewById(R.id.foldsMeasurementsLayout);
+        insertButton = view.findViewById(R.id.insertButton);
+
+        insertButton.setOnClickListener(event -> {
+            if (getActivity() instanceof MainActivity) {
+                ((MainActivity) getActivity()).loadFragment(new RegisterPersonalFragment());
+            }
+        });
 
         personalDataMap = loadJsonData(WORKOUTS_FILE);
         setupWorkoutSpinner();
