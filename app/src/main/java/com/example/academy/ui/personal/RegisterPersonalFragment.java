@@ -78,7 +78,7 @@ public class RegisterPersonalFragment extends JsonFragment {
                     .setNegativeButton("Cancelar", null)
                     .setPositiveButton("Confirmar", (((dialogInterface, i) -> {
                         if (getActivity() instanceof MainActivity) {
-                            ((MainActivity) getActivity()).loadFragment(new RegisterPersonalFragment());
+                            ((MainActivity) getActivity()).loadFragment(new PersonalFragment());
                         }
                     }))).create();
             dialog.show();
@@ -152,30 +152,32 @@ public class RegisterPersonalFragment extends JsonFragment {
 
         HashMap<String, Object> storedData = loadJsonData(WORKOUTS_FILE);
 
-        HashMap<String, Object> personalData = new HashMap<>();
-        if (!storedData.containsKey(personalDate)) {
-            HashMap<String, HashMap> registerDate = new HashMap<>();
-            registerDate.put("Personal", personalData);
-            storedData.put(personalDate, registerDate);
+        if (!storedData.containsKey(personalDate)) storedData.put(personalDate, new HashMap<>());
+        HashMap<String, HashMap> registerDate = (HashMap<String, HashMap>) storedData.get(personalDate);
 
-            personalData.put("IMC", imcEditText.getText().toString());
-            personalData.put("Height", heightEditText.getText().toString());
-            personalData.put("Weight", weightEditText.getText().toString());
-            personalData.put("Fat percentage", fatPercentageEditText.getText().toString());
-            personalData.put("Lean mass", leanBodyMassEditText.getText().toString());
-            personalData.put("Fat weight", fatWeightEditText.getText().toString());
-
-            personalData.put("Measures", measuresMap);
-            personalData.put("Folds", foldsMap);
-
-            saveToInternalStorage(storedData, WORKOUTS_FILE);
-            Toast.makeText(getContext(), "Dados Pessoais salvos", Toast.LENGTH_LONG).show();
-
-            if (getActivity() instanceof MainActivity) {
-                ((MainActivity) getActivity()).loadFragment(new PersonalFragment());
-            }
-        } else {
+        if (!editable && registerDate != null && registerDate.containsKey("Personal")) {
             Toast.makeText(getContext(), "Já existe registro com esta data", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        if (!registerDate.containsKey("Personal")) registerDate.put("Personal", new HashMap<>());
+        HashMap<String, Object> personalData = registerDate.get("Personal");
+
+        personalData.put("IMC", imcEditText.getText().toString());
+        personalData.put("Height", heightEditText.getText().toString());
+        personalData.put("Weight", weightEditText.getText().toString());
+        personalData.put("Fat percentage", fatPercentageEditText.getText().toString());
+        personalData.put("Lean mass", leanBodyMassEditText.getText().toString());
+        personalData.put("Fat weight", fatWeightEditText.getText().toString());
+
+        personalData.put("Measures", measuresMap);
+        personalData.put("Folds", foldsMap);
+
+        saveToInternalStorage(storedData, WORKOUTS_FILE);
+        Toast.makeText(getContext(), "Dados Pessoais salvos", Toast.LENGTH_LONG).show();
+
+        if (getActivity() instanceof MainActivity) {
+            ((MainActivity) getActivity()).loadFragment(new PersonalFragment());
         }
     }
 
