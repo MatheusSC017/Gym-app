@@ -1,5 +1,6 @@
 package com.example.academy.ui.personal;
 
+import android.app.AlertDialog;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
@@ -13,14 +14,29 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.academy.MainActivity;
 import com.example.academy.R;
+import com.example.academy.ui.base.JsonFragment;
+import com.example.academy.ui.workout.WorkoutFragment;
+import com.example.academy.view.EditTextDate;
 
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 
-public class RegisterPersonalFragment extends Fragment {
+public class RegisterPersonalFragment extends JsonFragment {
+    private static String WORKOUTS_FILE = "workouts.json";
+
     HashMap<String, Integer> measuresMap = new HashMap<>();
     HashMap<String, Integer> foldsMap = new HashMap<>();
 
+    private EditTextDate personalEditTextDate;
+    private EditText imcEditText;
+    private EditText heightEditText;
+    private EditText weightEditText;
+    private EditText fatPercentageEditText;
+    private EditText leanBodyMassEditText;
+    private EditText fatWeightEditText;
     private LinearLayout measuresLayout;
     private LinearLayout foldsLayout;
     private EditText measureNameEditText;
@@ -29,12 +45,21 @@ public class RegisterPersonalFragment extends Fragment {
     private EditText foldValueEditText;
     private Button insertMeasureButton;
     private Button insertFoldButton;
+    private Button returnButton;
+    private Button saveButton;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_register_personal, container, false);
 
+        personalEditTextDate = view.findViewById(R.id.personalEditTextDate);
+        imcEditText = view.findViewById(R.id.imcEditText);
+        heightEditText = view.findViewById(R.id.heightEditText);
+        weightEditText = view.findViewById(R.id.weightEditText);
+        fatPercentageEditText = view.findViewById(R.id.fatPercentageEditText);
+        leanBodyMassEditText = view.findViewById(R.id.leanBodyMassEditText);
+        fatWeightEditText = view.findViewById(R.id.fatWeightEditText);
         measuresLayout = view.findViewById(R.id.measuresLayout);
         foldsLayout = view.findViewById(R.id.foldsLayout);
         measureNameEditText = view.findViewById(R.id.measureNameEditText);
@@ -43,6 +68,22 @@ public class RegisterPersonalFragment extends Fragment {
         foldValueEditText = view.findViewById(R.id.foldValueEditText);
         insertMeasureButton = view.findViewById(R.id.insertMeasureButton);
         insertFoldButton = view.findViewById(R.id.insertFoldButton);
+        returnButton = view.findViewById(R.id.returnButton);
+        saveButton = view.findViewById(R.id.saveButton);
+
+        returnButton.setOnClickListener(event -> {
+            AlertDialog dialog = new AlertDialog.Builder(getContext())
+                    .setTitle("Caso opte por retornar as informações serão perdidas")
+                    .setNegativeButton("Cancelar", null)
+                    .setPositiveButton("Confirmar", (((dialogInterface, i) -> {
+                        if (getActivity() instanceof MainActivity) {
+                            ((MainActivity) getActivity()).loadFragment(new RegisterPersonalFragment());
+                        }
+                    }))).create();
+            dialog.show();
+        });
+
+        saveButton.setOnClickListener(event -> savePersonalData());
 
         insertMeasureButton.setOnClickListener(event -> {
             insertValueSubList(measureNameEditText, measureValueEditText, measuresLayout, measuresMap);
@@ -52,7 +93,58 @@ public class RegisterPersonalFragment extends Fragment {
             insertValueSubList(foldNameEditText, foldValueEditText, foldsLayout, foldsMap);
         });
 
+        setPersonalDate();
+
         return view;
+    }
+
+    public void setPersonalDate() {
+        Date today = new Date();
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(today);
+
+        String month;
+        if (calendar.get(Calendar.MONTH) <= 9)
+            month = "0" + (calendar.get(Calendar.MONTH) + 1);
+        else
+            month = String.valueOf(calendar.get(Calendar.MONTH) + 1);
+        personalEditTextDate.setText(month + "/" + calendar.get(Calendar.YEAR));
+    }
+
+    private void savePersonalData(){
+        String personalDate = personalEditTextDate.getText().toString();
+        if (personalDate.length() != 7) {
+            Toast.makeText(getContext(), "Insira a data da avaliação", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        HashMap<String, Object> storedData = loadJsonData(WORKOUTS_FILE);
+
+        HashMap<String, Object> personalData = new HashMap<>();
+        if (!storedData.containsKey(personalDate)) {
+            HashMap<String, HashMap> registerDate = new HashMap<>();
+            registerDate.put("Personal", personalData);
+            storedData.put(personalDate, registerDate);
+
+            personalData.put("IMC", imcEditText.getText().toString());
+            personalData.put("Height", heightEditText.getText().toString());
+            personalData.put("Weight", weightEditText.getText().toString());
+            personalData.put("Fat percentage", fatPercentageEditText.getText().toString());
+            personalData.put("Lean mass", leanBodyMassEditText.getText().toString());
+            personalData.put("Fat weight", fatWeightEditText.getText().toString());
+
+            personalData.put("Measures", measuresMap);
+            personalData.put("Folds", foldsMap);
+
+            saveToInternalStorage(storedData, WORKOUTS_FILE);
+            Toast.makeText(getContext(), "Dados Pessoais salvos", Toast.LENGTH_LONG).show();
+
+            if (getActivity() instanceof MainActivity) {
+                ((MainActivity) getActivity()).loadFragment(new PersonalFragment());
+            }
+        } else {
+            Toast.makeText(getContext(), "Já existe registro com esta data", Toast.LENGTH_LONG).show();
+        }
     }
 
     private void insertValueSubList(EditText nameEditText, EditText valueEditText,
@@ -63,6 +155,12 @@ public class RegisterPersonalFragment extends Fragment {
         if (name.isEmpty() || value.isEmpty()) {
             return;
         }
+
+        if (subList.containsKey(name)) {
+            Toast.makeText(getContext(), "Já existe registro com esse nome", Toast.LENGTH_LONG).show();
+            return;
+        }
+
         nameEditText.setText("");
         valueEditText.setText("");
 
