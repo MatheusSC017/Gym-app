@@ -67,21 +67,21 @@
                     android:id="@+id/imcTextView"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="IMC:25,5"
+                    android:text="IMC: -"
                     android:textStyle="bold" />
 
                 <TextView
                     android:id="@+id/heightTextView"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Altura: 1,7m"
+                    android:text="Altura: -"
                     android:textStyle="bold" />
 
                 <TextView
                     android:id="@+id/weightTextView"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Peso: 87 Kg"
+                    android:text="Peso: -"
                     android:textStyle="bold" />
 
             </LinearLayout>
@@ -101,21 +101,21 @@
                     android:id="@+id/fatPercentageTextView"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="% Gordura: 35%"
+                    android:text="% Gordura: -"
                     android:textStyle="bold" />
 
                 <TextView
                     android:id="@+id/leanBodyMassTextView"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Massa Margra: 62 Kg"
+                    android:text="Massa Margra: -"
                     android:textStyle="bold" />
 
                 <TextView
                     android:id="@+id/fatWeightTextView"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Peso Gordo: 25 Kg"
+                    android:text="Peso Gordo: -"
                     android:textStyle="bold" />
 
             </LinearLayout>

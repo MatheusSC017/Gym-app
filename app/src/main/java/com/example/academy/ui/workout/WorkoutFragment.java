@@ -125,7 +125,9 @@ public class WorkoutFragment extends JsonFragment {
                     .setPositiveButton("Confirmar", ((dialogInterface, i) -> {
                         workoutsIds.remove(workoutsIds.indexOf(workout));
                         setupWorkoutSpinner();
-                        workoutsMap.remove(workout);
+                        HashMap<String, Object> registerData = (HashMap<String, Object>) workoutsMap.get(workout);
+                        registerData.remove("Series");
+                        if (registerData.size() == 0) workoutsMap.remove(workout);;
                         saveToInternalStorage(workoutsMap, WORKOUTS_FILE);
                     })).setNegativeButton("Cancelar", ((dialogInterface, i) -> {
                         // Do nothing

@@ -1,5 +1,6 @@
 package com.example.academy.ui.personal;
 
+import android.app.AlertDialog;
 import android.content.Context;
 import android.os.Bundle;
 
@@ -41,6 +42,7 @@ public class PersonalFragment extends JsonFragment {
     private LinearLayout foldsMeasurementsLayout;
     private Button insertButton;
     private Button editButton;
+    private Button deleteButton;
 
     private List<String> personalIds = new ArrayList<>();
     private HashMap<String, Object> personalDataMap;
@@ -61,6 +63,7 @@ public class PersonalFragment extends JsonFragment {
         foldsMeasurementsLayout = view.findViewById(R.id.foldsMeasurementsLayout);
         insertButton = view.findViewById(R.id.insertButton);
         editButton = view.findViewById(R.id.editButton);
+        deleteButton = view.findViewById(R.id.deleteButton);
 
         insertButton.setOnClickListener(event -> {
             if (getActivity() instanceof MainActivity) {
@@ -69,6 +72,8 @@ public class PersonalFragment extends JsonFragment {
         });
 
         editButton.setOnClickListener(event -> navigateEditPersonalData());
+
+        deleteButton.setOnClickListener(event -> deletePersonalRegister());
 
         personalDataMap = loadJsonData(WORKOUTS_FILE);
         setupWorkoutSpinner();
@@ -140,6 +145,26 @@ public class PersonalFragment extends JsonFragment {
                 // Do nothing
             }
         });
+    }
+
+    private void deletePersonalRegister() {
+        String personalDate = personalDateSpinner.getSelectedItem().toString();
+
+        if (!personalDate.equals("")) {
+            AlertDialog dialog = new AlertDialog.Builder(getContext())
+                    .setTitle("Deseja confirmar a exclusão deste treinamento?")
+                    .setPositiveButton("Confirmar", ((dialogInterface, i) -> {
+                        personalIds.remove(personalIds.indexOf(personalDate));
+                        setupWorkoutSpinner();
+                        HashMap<String, Object> registerData = (HashMap<String, Object>) personalDataMap.get(personalDate);
+                        registerData.remove("Personal");
+                        if (registerData.size() == 0) personalDataMap.remove(personalDate);
+                        saveToInternalStorage(personalDataMap, WORKOUTS_FILE);
+                    })).setNegativeButton("Cancelar", ((dialogInterface, i) -> {
+                        // Do nothing
+                    })).create();
+            dialog.show();
+        }
     }
 
     private void setupPersonalData(String personalDate) {
