@@ -1,14 +1,232 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".ui.personal.PersonalFragment">
 
     <!-- TODO: Update blank fragment layout -->
-    <TextView
+
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="@string/app_name" />
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:id="@+id/selectionLayout"
+            android:layout_width="match_parent"
+            android:layout_height="96dp"
+            android:gravity="start|center_vertical"
+            android:orientation="horizontal"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:layout_editor_absoluteX="1dp">
+
+            <Spinner
+                android:id="@+id/personalDateSpinner"
+                android:layout_width="250dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="12dp"
+                android:minHeight="48dp"
+                android:padding="8dp" />
+
+            <ImageView
+                android:id="@+id/haltereIcon"
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:layout_marginLeft="32dp"
+                android:backgroundTint="@color/primary"
+                android:contentDescription="Haltere Icon"
+                app:srcCompat="@drawable/ic_haltere_70" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/personalLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:padding="8dp"
+            app:layout_constraintTop_toBottomOf="@+id/selectionLayout"
+            tools:layout_editor_absoluteX="358dp">
+
+            <Space
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="8dp">
+
+                <TextView
+                    android:id="@+id/imcTextView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="IMC: -"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/heightTextView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Altura: -"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/weightTextView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Peso: -"
+                    android:textStyle="bold" />
+
+            </LinearLayout>
+
+            <Space
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:padding="8dp">
+
+                <TextView
+                    android:id="@+id/fatPercentageTextView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="% Gordura: -"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/leanBodyMassTextView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Massa Margra: -"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/fatWeightTextView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Peso Gordo: -"
+                    android:textStyle="bold" />
+
+            </LinearLayout>
+
+            <Space
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1" />
+        </LinearLayout>
+
+        <ScrollView
+            android:id="@+id/measurementScroll"
+            android:layout_width="409dp"
+            android:layout_height="0dp"
+            app:layout_constraintBottom_toTopOf="@+id/optionsLayout"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/personalLayout">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:id="@+id/measuresTextView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Medidas"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+
+                <LinearLayout
+                    android:id="@+id/measurementLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_marginBottom="16dp"
+                    android:orientation="vertical"
+                    android:paddingLeft="8dp"
+                    android:paddingTop="8dp"/>
+
+                <TextView
+                    android:id="@+id/foldsTextView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Dobras"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+
+                <LinearLayout
+                    android:id="@+id/foldsMeasurementsLayout"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
+                    android:paddingLeft="8dp"
+                    android:paddingTop="8dp"/>
+            </LinearLayout>
+        </ScrollView>
+
+        <LinearLayout
+            android:id="@+id/optionsLayout"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:background="@color/secondary"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingLeft="32dp"
+            android:paddingRight="32dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent">
+
+            <Button
+                android:id="@+id/insertButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="@android:drawable/ic_menu_add"
+                android:backgroundTint="@color/black"
+                app:backgroundTint="@null"
+                app:drawableTint="@null" />
+
+            <Space
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1" />
+
+            <Button
+                android:id="@+id/editButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="@android:drawable/ic_menu_edit"
+                android:backgroundTint="@color/black"
+                app:backgroundTint="@null"
+                app:drawableTint="@null" />
+
+            <Space
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1" />
+
+            <Button
+                android:id="@+id/deleteButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="@android:drawable/ic_menu_delete"
+                android:backgroundTint="@color/black"
+                app:backgroundTint="@null"
+                app:drawableTint="@null" />
+
+        </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </FrameLayout>

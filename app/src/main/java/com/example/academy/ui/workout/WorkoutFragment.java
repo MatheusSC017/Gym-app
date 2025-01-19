@@ -39,7 +39,6 @@ public class WorkoutFragment extends JsonFragment {
     private Button insertButton;
     private Button editButton;
     private Button deleteButton;
-    private Button loadButton;
     private HashMap<String, Object> workoutsMap;
 
     @Override
@@ -50,9 +49,8 @@ public class WorkoutFragment extends JsonFragment {
         insertButton = view.findViewById(R.id.insertButton);
         editButton = view.findViewById(R.id.editButton);
         deleteButton = view.findViewById(R.id.deleteButton);
-        loadButton = view.findViewById(R.id.loadButton);
         workoutLayout = view.findViewById(R.id.workoutLayout);
-        workoutsSpinner = view.findViewById(R.id.workoutsSpinner);
+        workoutsSpinner = view.findViewById(R.id.personalDateSpinner);
         exerciseSeriesSpinner = view.findViewById(R.id.exerciseSeriesSpinner);
 
         insertButton.setOnClickListener(event -> {
@@ -127,7 +125,9 @@ public class WorkoutFragment extends JsonFragment {
                     .setPositiveButton("Confirmar", ((dialogInterface, i) -> {
                         workoutsIds.remove(workoutsIds.indexOf(workout));
                         setupWorkoutSpinner();
-                        workoutsMap.remove(workout);
+                        HashMap<String, Object> registerData = (HashMap<String, Object>) workoutsMap.get(workout);
+                        registerData.remove("Series");
+                        if (registerData.size() == 0) workoutsMap.remove(workout);;
                         saveToInternalStorage(workoutsMap, WORKOUTS_FILE);
                     })).setNegativeButton("Cancelar", ((dialogInterface, i) -> {
                         // Do nothing
@@ -238,10 +238,13 @@ public class WorkoutFragment extends JsonFragment {
         View exerciseCard = LayoutInflater.from(getContext()).inflate(R.layout.exercise_layout, layout, false);
 
         TextView exerciseTextView = exerciseCard.findViewById(R.id.exerciseTextView);
+        TextView muscleTextView = exerciseCard.findViewById(R.id.muscleTextView);
         TextView seriesTextView = exerciseCard.findViewById(R.id.seriesTextView);
         TextView repetitionsTextView = exerciseCard.findViewById(R.id.repetitionsTextView);
 
         exerciseTextView.setText(exercise);
+        muscleTextView.setText(exerciseData.get("Muscle").toString());
+
         String series = exerciseData.getOrDefault("Series", "1").toString();
         if (!series.equals("1")) seriesTextView.setText(series + " x");
 

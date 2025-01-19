@@ -31,6 +31,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 public class RegisterWorkoutFragment extends JsonFragment {
+    private static List<String> TYPES_OF_MEASURES = List.of("Repetições", "Segundos", "Minutos", "Horas", "Ciclos");
     private static String WORKOUTS_FILE = "workouts.json";
     private static Integer SEQUENCE_AVAILABLE_SELECTION = 9;
 
@@ -68,9 +69,15 @@ public class RegisterWorkoutFragment extends JsonFragment {
         addExerciseButton = view.findViewById(R.id.addExerciseButton);
 
         returnButton.setOnClickListener(event -> {
-            if (getActivity() instanceof MainActivity) {
-                ((MainActivity) getActivity()).loadFragment(new WorkoutFragment());
-            }
+            AlertDialog dialog = new AlertDialog.Builder(getContext())
+                    .setTitle("Caso opte por retornar as informações serão perdidas")
+                    .setNegativeButton("Cancelar", null)
+                    .setPositiveButton("Confirmar", (((dialogInterface, i) -> {
+                        if (getActivity() instanceof MainActivity) {
+                            ((MainActivity) getActivity()).loadFragment(new WorkoutFragment());
+                        }
+                    }))).create();
+            dialog.show();
         });
         addSerieButton.setOnClickListener(event -> showSerieRegisterDialog());
         removeSerieButton.setOnClickListener(event -> removeSerie());
@@ -140,7 +147,7 @@ public class RegisterWorkoutFragment extends JsonFragment {
         return  sequenceArray;
     }
 
-    public void setWorkoutDate() {
+    private void setWorkoutDate() {
         Date today = new Date();
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(today);
@@ -206,12 +213,12 @@ public class RegisterWorkoutFragment extends JsonFragment {
     }
 
     private void setSeriesSpinner() {
-        ArrayList<String> seriesNamesAdapter = new ArrayList<>();
+        ArrayList<String> seriesNamesFormatted = new ArrayList<>();
         for (int i = 0; i < seriesNames.size(); i++) {
-            seriesNamesAdapter.add(getLetter(i) + "- " + seriesNames.get(i));
+            seriesNamesFormatted.add(getLetter(i) + "- " + seriesNames.get(i));
         }
         ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item,
-                seriesNamesAdapter);
+                seriesNamesFormatted);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         seriesSpinner.setAdapter(adapter);
 
@@ -219,6 +226,8 @@ public class RegisterWorkoutFragment extends JsonFragment {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
                 exercisesSerie = (HashMap<String, HashMap>) seriesList.get(position).get(1);
+
+
                 sequenceGroups = (List<ArrayList<String>>) seriesList.get(position).get(2);
 
                 exerciseLinearLayout.removeAllViews();
@@ -243,6 +252,10 @@ public class RegisterWorkoutFragment extends JsonFragment {
             View dialogView = layoutInflater.inflate(R.layout.dialog_exercise_register, null);
             Button cancelButton = dialogView.findViewById(R.id.cancelButton);
             Button saveButton = dialogView.findViewById(R.id.submitButton);
+            Spinner typeSpinner = dialogView.findViewById(R.id.typeSpinner);
+            ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item, TYPES_OF_MEASURES);
+            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            typeSpinner.setAdapter(adapter);
 
             AlertDialog registerDialog = new AlertDialog.Builder(getContext()).setView(dialogView).setCancelable(false).create();
             cancelButton.setOnClickListener(event -> registerDialog.dismiss());
@@ -258,14 +271,14 @@ public class RegisterWorkoutFragment extends JsonFragment {
     private void addExercise(View dialogView) {
         EditText exerciseEditText = dialogView.findViewById(R.id.exerciseEditText);
         EditText seriesEditText = dialogView.findViewById(R.id.seriesEditText);
-        EditText typeEditText = dialogView.findViewById(R.id.typeEditText);
+        Spinner typeSpinner = dialogView.findViewById(R.id.typeSpinner);
         EditText quantityEditText = dialogView.findViewById(R.id.quantityEditText);
         EditText muscleEditText = dialogView.findViewById(R.id.muscleEditText);
         EditText observationEditText = dialogView.findViewById(R.id.observationEditText);
 
         if (exerciseEditText.getText().length() == 0 ||
                 seriesEditText.getText().length() == 0 ||
-                typeEditText.getText().length() == 0 ||
+                typeSpinner.getSelectedItem() == null ||
                 quantityEditText.getText().length() == 0) {
             Toast.makeText(getContext(), "Campos obrigatórios (Exercício, Series, Tipo e Quantidade)", Toast.LENGTH_LONG).show();
             return;
@@ -279,7 +292,7 @@ public class RegisterWorkoutFragment extends JsonFragment {
         HashMap<String, Object> exerciseMap = new HashMap<>();
 
         exerciseMap.put("Series", seriesEditText.getText().toString());
-        exerciseMap.put("Type", typeEditText.getText().toString());
+        exerciseMap.put("Type", typeSpinner.getSelectedItem().toString());
         exerciseMap.put("Quantity", quantityEditText.getText().toString());
         exerciseMap.put("Muscle", muscleEditText.getText().toString());
         exerciseMap.put("Observation", observationEditText.getText().toString());
@@ -293,6 +306,7 @@ public class RegisterWorkoutFragment extends JsonFragment {
         View exerciseCard = LayoutInflater.from(getContext()).inflate(R.layout.register_exercise_layout, layout, false);
 
         TextView exerciseTextView = exerciseCard.findViewById(R.id.exerciseTextView);
+        TextView muscleTextView = exerciseCard.findViewById(R.id.muscleTextView);
         TextView seriesTextView = exerciseCard.findViewById(R.id.seriesTextView);
         TextView repetitionsTextView = exerciseCard.findViewById(R.id.repetitionsTextView);
         Button editExerciseButton = exerciseCard.findViewById(R.id.editExerciseButton);
@@ -302,6 +316,7 @@ public class RegisterWorkoutFragment extends JsonFragment {
         removeExerciseButton.setOnClickListener(event -> removeExercise(exerciseTextView.getText().toString()));
 
         exerciseTextView.setText(exercise);
+        muscleTextView.setText(exerciseData.get("Muscle").toString());
         String series = exerciseData.getOrDefault("Series", "1").toString();
         if (!series.equals("1")) seriesTextView.setText(series + " x");
         repetitionsTextView.setText(exerciseData.getOrDefault("Quantity", "").toString() + " " + exerciseData.getOrDefault("Type", "").toString());
@@ -312,60 +327,66 @@ public class RegisterWorkoutFragment extends JsonFragment {
     private void showEditExerciseDialog(String exercise) {
         HashMap<String, String> exerciseData = exercisesSerie.get(exercise);
 
-        LayoutInflater layoutInflater = LayoutInflater.from(getContext());
-        View dialogView = layoutInflater.inflate(R.layout.dialog_exercise_register, null);
 
-        EditText exerciseEditText = dialogView.findViewById(R.id.exerciseEditText);
-        exerciseEditText.setText(exercise);
-        EditText seriesEditText = dialogView.findViewById(R.id.seriesEditText);
-        seriesEditText.setText(exerciseData.getOrDefault("Series", ""));
-        EditText typeEditText = dialogView.findViewById(R.id.typeEditText);
-        typeEditText.setText(exerciseData.getOrDefault("Type", ""));
-        EditText quantityEditText = dialogView.findViewById(R.id.quantityEditText);
-        quantityEditText.setText(exerciseData.getOrDefault("Quantity", ""));
-        EditText muscleEditText = dialogView.findViewById(R.id.muscleEditText);
-        muscleEditText.setText(exerciseData.getOrDefault("Muscle", ""));
-        EditText observationEditText = dialogView.findViewById(R.id.observationEditText);
-        observationEditText.setText(exerciseData.getOrDefault("Observation", ""));
+        if (exerciseData != null) {
+            LayoutInflater layoutInflater = LayoutInflater.from(getContext());
+            View dialogView = layoutInflater.inflate(R.layout.dialog_exercise_register, null);
 
-        Button cancelButton = dialogView.findViewById(R.id.cancelButton);
-        Button saveButton = dialogView.findViewById(R.id.submitButton);
+            EditText exerciseEditText = dialogView.findViewById(R.id.exerciseEditText);
+            exerciseEditText.setText(exercise);
+            EditText seriesEditText = dialogView.findViewById(R.id.seriesEditText);
+            if (exerciseData.containsKey("Series")) seriesEditText.setText(String.valueOf(exerciseData.get("Series")));
+            Spinner typeSpinner = dialogView.findViewById(R.id.typeSpinner);
+            ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item, TYPES_OF_MEASURES);
+            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            typeSpinner.setAdapter(adapter);
+            typeSpinner.setSelection(TYPES_OF_MEASURES.indexOf(exerciseData.get("Type")));
+            EditText quantityEditText = dialogView.findViewById(R.id.quantityEditText);
+            if (exerciseData.containsKey("Quantity")) quantityEditText.setText(String.valueOf(exerciseData.get("Quantity")));
+            EditText muscleEditText = dialogView.findViewById(R.id.muscleEditText);
+            if (exerciseData.containsKey("Muscle")) muscleEditText.setText(exerciseData.get("Muscle"));
+            EditText observationEditText = dialogView.findViewById(R.id.observationEditText);
+            if (exerciseData.containsKey("Observation")) observationEditText.setText(exerciseData.get("Observation"));
 
-        AlertDialog dialog = new AlertDialog.Builder(getContext()).setView(dialogView).setCancelable(false).create();
+            Button cancelButton = dialogView.findViewById(R.id.cancelButton);
+            Button saveButton = dialogView.findViewById(R.id.submitButton);
 
-        cancelButton.setOnClickListener(event -> dialog.dismiss());
-        saveButton.setOnClickListener(event -> {
-            exerciseData.put("Series", seriesEditText.getText().toString());
-            exerciseData.put("Type", typeEditText.getText().toString());
-            exerciseData.put("Quantity", quantityEditText.getText().toString());
-            exerciseData.put("Muscle", muscleEditText.getText().toString());
-            exerciseData.put("Observation", observationEditText.getText().toString());
+            AlertDialog dialog = new AlertDialog.Builder(getContext()).setView(dialogView).setCancelable(false).create();
 
-            if (!exerciseEditText.getText().toString().equals(exercise)) {
-                exercisesSerie.remove(exercise);
-                exercisesSerie.put(exerciseEditText.getText().toString(), exerciseData);
-            }
+            cancelButton.setOnClickListener(event -> dialog.dismiss());
+            saveButton.setOnClickListener(event -> {
+                exerciseData.put("Series", seriesEditText.getText().toString());
+                exerciseData.put("Type", typeSpinner.getSelectedItem().toString());
+                exerciseData.put("Quantity", quantityEditText.getText().toString());
+                exerciseData.put("Muscle", muscleEditText.getText().toString());
+                exerciseData.put("Observation", observationEditText.getText().toString());
 
-            for (int i = 0; i <= exerciseLinearLayout.getChildCount(); i++) {
-                View exerciseCard = exerciseLinearLayout.getChildAt(i);
-                TextView exerciseTextView = exerciseCard.findViewById(R.id.exerciseTextView);
-                if (exerciseTextView != null && exerciseTextView.getText().toString().equals(exercise)) {
-                    TextView seriesTextView = exerciseCard.findViewById(R.id.seriesTextView);
-                    TextView repetitionsTextView = exerciseCard.findViewById(R.id.repetitionsTextView);
-
-                    exerciseTextView.setText(exerciseEditText.getText().toString());
-                    String series = exerciseData.getOrDefault("Series", "1").toString();
-                    if (!series.equals("1")) seriesTextView.setText(series + " x");
-                    repetitionsTextView.setText(exerciseData.getOrDefault("Quantity", "").toString() + " " + exerciseData.getOrDefault("Type", "").toString());
-
-                    break;
+                if (!exerciseEditText.getText().toString().equals(exercise)) {
+                    exercisesSerie.remove(exercise);
+                    exercisesSerie.put(exerciseEditText.getText().toString(), exerciseData);
                 }
-            }
 
-            dialog.dismiss();
-        });
+                for (int i = 0; i <= exerciseLinearLayout.getChildCount(); i++) {
+                    View exerciseCard = exerciseLinearLayout.getChildAt(i);
+                    TextView exerciseTextView = exerciseCard.findViewById(R.id.exerciseTextView);
+                    if (exerciseTextView != null && exerciseTextView.getText().toString().equals(exercise)) {
+                        TextView seriesTextView = exerciseCard.findViewById(R.id.seriesTextView);
+                        TextView repetitionsTextView = exerciseCard.findViewById(R.id.repetitionsTextView);
 
-        dialog.show();
+                        exerciseTextView.setText(exerciseEditText.getText().toString());
+                        String series = exerciseData.getOrDefault("Series", "1").toString();
+                        if (!series.equals("1")) seriesTextView.setText(series + " x");
+                        repetitionsTextView.setText(exerciseData.getOrDefault("Quantity", "").toString() + " " + exerciseData.getOrDefault("Type", "").toString());
+
+                        break;
+                    }
+                }
+
+                dialog.dismiss();
+            });
+
+            dialog.show();
+        }
     }
 
     private void removeExercise(String exercise) {

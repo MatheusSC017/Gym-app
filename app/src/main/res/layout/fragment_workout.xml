@@ -25,7 +25,7 @@
                 android:orientation="vertical">
 
                 <Spinner
-                    android:id="@+id/workoutsSpinner"
+                    android:id="@+id/personalDateSpinner"
                     android:layout_width="250dp"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="6dp"
@@ -130,19 +130,6 @@
                 app:backgroundTint="@null"
                 app:drawableTint="@null" />
 
-            <Space
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1" />
-
-            <Button
-                android:id="@+id/loadButton"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:background="@android:drawable/ic_menu_upload"
-                android:backgroundTint="@color/black"
-                app:backgroundTint="@null"
-                app:drawableTint="@null"/>
         </LinearLayout>
 
 
