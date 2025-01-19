@@ -50,7 +50,7 @@ public class WorkoutFragment extends JsonFragment {
         editButton = view.findViewById(R.id.editButton);
         deleteButton = view.findViewById(R.id.deleteButton);
         workoutLayout = view.findViewById(R.id.workoutLayout);
-        workoutsSpinner = view.findViewById(R.id.workoutsSpinner);
+        workoutsSpinner = view.findViewById(R.id.personalDateSpinner);
         exerciseSeriesSpinner = view.findViewById(R.id.exerciseSeriesSpinner);
 
         insertButton.setOnClickListener(event -> {

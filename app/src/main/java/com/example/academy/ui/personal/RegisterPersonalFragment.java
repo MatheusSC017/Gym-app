@@ -26,6 +26,7 @@ import java.util.HashMap;
 
 public class RegisterPersonalFragment extends JsonFragment {
     private static String WORKOUTS_FILE = "workouts.json";
+    private static Boolean editable = false;
 
     HashMap<String, Integer> measuresMap = new HashMap<>();
     HashMap<String, Integer> foldsMap = new HashMap<>();
@@ -93,12 +94,43 @@ public class RegisterPersonalFragment extends JsonFragment {
             insertValueSubList(foldNameEditText, foldValueEditText, foldsLayout, foldsMap);
         });
 
-        setPersonalDate();
+        Bundle bundle = getArguments();
+        if (bundle != null) {
+            editable = true;
+
+            String personalDate = bundle.getString("personalDate");
+            loadPersonalData(personalDate);
+        } else {
+            setPersonalDate();
+        }
 
         return view;
     }
 
-    public void setPersonalDate() {
+    private void loadPersonalData(String personalDate) {
+        HashMap<String, Object> storedData = loadJsonData(WORKOUTS_FILE);
+        if (storedData.containsKey(personalDate)) {
+            HashMap<String, Object> registerData = (HashMap<String, Object>) storedData.get(personalDate);
+            HashMap<String, Object> personalData = (HashMap<String, Object>) registerData.getOrDefault("Personal", new HashMap<>());
+
+            personalEditTextDate.setText(personalDate);
+            imcEditText.setText(personalData.getOrDefault("IMC", "").toString());
+            heightEditText.setText(personalData.getOrDefault("Height", "").toString());
+            weightEditText.setText(personalData.getOrDefault("Weight", "").toString());
+            fatPercentageEditText.setText(personalData.getOrDefault("Fat percentage", "").toString());
+            leanBodyMassEditText.setText(personalData.getOrDefault("Lean mass", "").toString());
+            fatWeightEditText.setText(personalData.getOrDefault("Fat weight", "").toString());
+
+            measuresMap = (HashMap<String, Integer>) personalData.getOrDefault("Measures", new HashMap<>());
+            foldsMap = (HashMap<String, Integer>) personalData.getOrDefault("Folds", new HashMap<>());
+
+            measuresMap.forEach((name, value) -> setupSubItemLayout(name, value.toString(), measuresLayout));
+            foldsMap.forEach((name, value) -> setupSubItemLayout(name, value.toString(), foldsLayout));
+
+        }
+    }
+
+    private void setPersonalDate() {
         Date today = new Date();
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(today);
@@ -165,7 +197,10 @@ public class RegisterPersonalFragment extends JsonFragment {
         valueEditText.setText("");
 
         subList.put(name, Integer.valueOf(value));
+        setupSubItemLayout(name, value, layout);
+    }
 
+    private void setupSubItemLayout(String name, String value, LinearLayout layout) {
         TextView textView = new TextView(getContext());
         textView.setText(name + ": " + value);
         layout.addView(textView);

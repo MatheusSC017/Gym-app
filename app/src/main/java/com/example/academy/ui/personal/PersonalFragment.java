@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
 public class PersonalFragment extends JsonFragment {
     private static String WORKOUTS_FILE = "workouts.json";
 
-    private Spinner workoutsSpinner;
+    private Spinner personalDateSpinner;
     private TextView imcTextView;
     private TextView heightTextView;
     private TextView weightTextView;
@@ -40,6 +40,7 @@ public class PersonalFragment extends JsonFragment {
     private LinearLayout measurementLayout;
     private LinearLayout foldsMeasurementsLayout;
     private Button insertButton;
+    private Button editButton;
 
     private List<String> personalIds = new ArrayList<>();
     private HashMap<String, Object> personalDataMap;
@@ -49,7 +50,7 @@ public class PersonalFragment extends JsonFragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_personal, container, false);
 
-        workoutsSpinner = view.findViewById(R.id.workoutsSpinner);
+        personalDateSpinner = view.findViewById(R.id.personalDateSpinner);
         imcTextView = view.findViewById(R.id.imcTextView);
         heightTextView = view.findViewById(R.id.heightTextView);
         weightTextView = view.findViewById(R.id.weightTextView);
@@ -59,6 +60,7 @@ public class PersonalFragment extends JsonFragment {
         measurementLayout = view.findViewById(R.id.measurementLayout);
         foldsMeasurementsLayout = view.findViewById(R.id.foldsMeasurementsLayout);
         insertButton = view.findViewById(R.id.insertButton);
+        editButton = view.findViewById(R.id.editButton);
 
         insertButton.setOnClickListener(event -> {
             if (getActivity() instanceof MainActivity) {
@@ -66,11 +68,27 @@ public class PersonalFragment extends JsonFragment {
             }
         });
 
+        editButton.setOnClickListener(event -> navigateEditPersonalData());
+
         personalDataMap = loadJsonData(WORKOUTS_FILE);
         setupWorkoutSpinner();
 
         return view;
 
+    }
+
+    public void navigateEditPersonalData() {
+        String personalDate = personalDateSpinner.getSelectedItem().toString();
+
+        Bundle bundle = new Bundle();
+        bundle.putString("personalDate", personalDate);
+
+        RegisterPersonalFragment fragment = new RegisterPersonalFragment();
+        fragment.setArguments(bundle);
+
+        if (getActivity() instanceof MainActivity) {
+            ((MainActivity) getActivity()).loadFragment(fragment);
+        }
     }
 
     public HashMap<String, Object> loadJsonData(String filePath) {
@@ -109,9 +127,9 @@ public class PersonalFragment extends JsonFragment {
     private void setupWorkoutSpinner() {
         ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item, personalIds);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        workoutsSpinner.setAdapter(adapter);
+        personalDateSpinner.setAdapter(adapter);
 
-        workoutsSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        personalDateSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
                 setupPersonalData(personalIds.get(position));

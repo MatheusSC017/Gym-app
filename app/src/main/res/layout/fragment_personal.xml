@@ -22,7 +22,7 @@
             tools:layout_editor_absoluteX="1dp">
 
             <Spinner
-                android:id="@+id/workoutsSpinner"
+                android:id="@+id/personalDateSpinner"
                 android:layout_width="250dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="6dp"

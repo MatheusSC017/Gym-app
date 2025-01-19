@@ -147,7 +147,7 @@ public class RegisterWorkoutFragment extends JsonFragment {
         return  sequenceArray;
     }
 
-    public void setWorkoutDate() {
+    private void setWorkoutDate() {
         Date today = new Date();
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(today);
