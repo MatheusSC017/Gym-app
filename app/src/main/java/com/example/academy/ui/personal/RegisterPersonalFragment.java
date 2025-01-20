@@ -5,9 +5,11 @@ import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
 
+import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewStub;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -124,8 +126,8 @@ public class RegisterPersonalFragment extends JsonFragment {
             measuresMap = (HashMap<String, Integer>) personalData.getOrDefault("Measures", new HashMap<>());
             foldsMap = (HashMap<String, Integer>) personalData.getOrDefault("Folds", new HashMap<>());
 
-            measuresMap.forEach((name, value) -> setupSubItemLayout(name, value.toString(), measuresLayout));
-            foldsMap.forEach((name, value) -> setupSubItemLayout(name, value.toString(), foldsLayout));
+            measuresMap.forEach((name, value) -> setupSubItemLayout(name, value.toString(), measuresLayout, measuresMap));
+            foldsMap.forEach((name, value) -> setupSubItemLayout(name, value.toString(), foldsLayout, foldsMap));
 
         }
     }
@@ -199,12 +201,44 @@ public class RegisterPersonalFragment extends JsonFragment {
         valueEditText.setText("");
 
         subList.put(name, Integer.valueOf(value));
-        setupSubItemLayout(name, value, layout);
+        setupSubItemLayout(name, value, layout, subList);
     }
 
-    private void setupSubItemLayout(String name, String value, LinearLayout layout) {
-        TextView textView = new TextView(getContext());
+    private void setupSubItemLayout(String name, String value, LinearLayout layout, HashMap<String, Integer> subList) {
+        View personalCard = LayoutInflater.from(getContext()).inflate(R.layout.register_layout, layout, false);
+        ViewStub contentViewStub = personalCard.findViewById(R.id.contentViewStub);
+        contentViewStub.setLayoutResource(R.layout.personal_layout);
+        View contentInflated = contentViewStub.inflate();
+
+        TextView textView = contentInflated.findViewById(R.id.personalTextView);
         textView.setText(name + ": " + value);
-        layout.addView(textView);
+
+        Button editExerciseButton = personalCard.findViewById(R.id.editExerciseButton);
+        Button removeExerciseButton = personalCard.findViewById(R.id.removeExerciseButton);
+
+        editExerciseButton.setOnClickListener(event -> {
+            EditText valueEditText = new EditText(getContext());
+            valueEditText.setInputType(InputType.TYPE_CLASS_NUMBER);
+            valueEditText.setText(String.valueOf(subList.get(name)));
+            AlertDialog dialog = new AlertDialog.Builder(getContext())
+                    .setTitle("Insira um novo valor para " + name)
+                    .setView(valueEditText)
+                    .setNegativeButton("Cancelar", null)
+                    .setPositiveButton("Confirmar", (((dialogInterface, i) -> {
+                        String newValue = valueEditText.getText().toString();
+                        if (!newValue.isEmpty()) {
+                            subList.put(name, Integer.valueOf(newValue));
+                            textView.setText(name + ": " + newValue);
+                        }
+                    }))).create();
+            dialog.show();
+        });
+        removeExerciseButton.setOnClickListener(event -> {
+            layout.removeView(personalCard);
+            subList.remove(name);
+        });
+
+        layout.addView(personalCard);
     }
+
 }
