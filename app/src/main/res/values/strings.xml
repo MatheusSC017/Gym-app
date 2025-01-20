@@ -2,7 +2,7 @@
     <string name="app_name">Academy</string>
     <string name="nav_open">Open</string>
     <string name="nav_close">Close</string>
-    <string name="workout_date">Data de inicio do treino</string>
+    <string name="workout_date">Data de inicio</string>
     <string name="add_serie">Adicionar serie de treinamento</string>
     <string name="add_exercise">Adicionar exercicio</string>
     <!-- TODO: Remove or change this placeholder text -->

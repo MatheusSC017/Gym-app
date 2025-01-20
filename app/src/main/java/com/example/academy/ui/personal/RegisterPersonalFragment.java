@@ -8,6 +8,7 @@ import androidx.fragment.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewStub;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -203,8 +204,20 @@ public class RegisterPersonalFragment extends JsonFragment {
     }
 
     private void setupSubItemLayout(String name, String value, LinearLayout layout) {
-        TextView textView = new TextView(getContext());
+        View personalCard = LayoutInflater.from(getContext()).inflate(R.layout.register_layout, layout, false);
+        ViewStub contentViewStub = personalCard.findViewById(R.id.contentViewStub);
+        contentViewStub.setLayoutResource(R.layout.personal_layout);
+        View contentInflated = contentViewStub.inflate();
+
+        TextView textView = contentInflated.findViewById(R.id.personalTextView);
         textView.setText(name + ": " + value);
-        layout.addView(textView);
+
+        Button editExerciseButton = personalCard.findViewById(R.id.editExerciseButton);
+        Button removeExerciseButton = personalCard.findViewById(R.id.removeExerciseButton);
+
+        editExerciseButton.setOnClickListener(event -> {});
+        removeExerciseButton.setOnClickListener(event -> {});
+
+        layout.addView(personalCard);
     }
 }

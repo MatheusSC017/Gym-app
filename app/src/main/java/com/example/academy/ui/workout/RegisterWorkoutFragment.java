@@ -12,14 +12,18 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewStub;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.fragment.app.FragmentTransaction;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -303,12 +307,15 @@ public class RegisterWorkoutFragment extends JsonFragment {
     }
 
     private void setupExerciseCard(LinearLayout layout, String exercise, HashMap<String, Object>  exerciseData) {
-        View exerciseCard = LayoutInflater.from(getContext()).inflate(R.layout.register_exercise_layout, layout, false);
+        View exerciseCard = LayoutInflater.from(getContext()).inflate(R.layout.register_layout, layout, false);
+        ViewStub contentViewStub = exerciseCard.findViewById(R.id.contentViewStub);
+        contentViewStub.setLayoutResource(R.layout.exercise_layout);
+        View contentInflated = contentViewStub.inflate();
 
-        TextView exerciseTextView = exerciseCard.findViewById(R.id.exerciseTextView);
-        TextView muscleTextView = exerciseCard.findViewById(R.id.muscleTextView);
-        TextView seriesTextView = exerciseCard.findViewById(R.id.seriesTextView);
-        TextView repetitionsTextView = exerciseCard.findViewById(R.id.repetitionsTextView);
+        TextView exerciseTextView = contentInflated.findViewById(R.id.exerciseTextView);
+        TextView muscleTextView = contentInflated.findViewById(R.id.muscleTextView);
+        TextView seriesTextView = contentInflated.findViewById(R.id.seriesTextView);
+        TextView repetitionsTextView = contentInflated.findViewById(R.id.repetitionsTextView);
         Button editExerciseButton = exerciseCard.findViewById(R.id.editExerciseButton);
         Button removeExerciseButton = exerciseCard.findViewById(R.id.removeExerciseButton);
 
