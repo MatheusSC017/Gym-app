@@ -6,16 +6,11 @@ import android.widget.Toast;
 
 import androidx.fragment.app.Fragment;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+import org.json.*;
 
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
+import java.util.*;
 
 public class JsonFragment extends Fragment {
     private HashMap<String, Object> dataMap;
@@ -59,8 +54,8 @@ public class JsonFragment extends Fragment {
         return map;
     }
 
-    private static ArrayList<Object> toList(JSONArray array) throws JSONException {
-        ArrayList<Object> list = new ArrayList<>();
+    private static List<Object> toList(JSONArray array) throws JSONException {
+        List<Object> list = new ArrayList<>();
         for (int i = 0; i < array.length(); i++) {
             list.add(convertFromJson(array.get(i)));
         }
