@@ -25,7 +25,7 @@ public class RegisterWorkoutFragment extends JsonFragment {
 
     private List<String> seriesNames = new ArrayList<>();
     private List<List<Object>> seriesList = new ArrayList<>();
-    private HashMap<String, HashMap> exercisesSerie;
+    private LinkedHashMap<String, HashMap> exercisesSerie;
     private List<List<String>> sequenceGroups;
 
     private LinearLayout exerciseLinearLayout;
@@ -94,7 +94,7 @@ public class RegisterWorkoutFragment extends JsonFragment {
             seriesNames = seriesData.keySet().stream().collect(Collectors.toList());
 
             for (String serieName : seriesNames) {
-                HashMap<String, HashMap> exercises = seriesData.get(serieName);
+                LinkedHashMap<String, HashMap> exercises = (LinkedHashMap<String, HashMap>) seriesData.get(serieName);
 
                 List<Object> serie = new ArrayList<>();
                 serie.add(serieName);
@@ -177,7 +177,7 @@ public class RegisterWorkoutFragment extends JsonFragment {
 
         List<Object> serie = new ArrayList<>();
         serie.add(serieName);
-        serie.add(new HashMap<>());
+        serie.add(new LinkedHashMap<>());
         serie.add(sequenceArray);
         seriesList.add(serie);
         seriesNames.add(serieName);
@@ -211,7 +211,7 @@ public class RegisterWorkoutFragment extends JsonFragment {
         seriesSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
-                exercisesSerie = (HashMap<String, HashMap>) seriesList.get(position).get(1);
+                exercisesSerie = (LinkedHashMap<String, HashMap>) seriesList.get(position).get(1);
 
 
                 sequenceGroups = (List<List<String>>) seriesList.get(position).get(2);
@@ -353,6 +353,12 @@ public class RegisterWorkoutFragment extends JsonFragment {
                 if (!exerciseEditText.getText().toString().equals(exercise)) {
                     exercisesSerie.remove(exercise);
                     exercisesSerie.put(exerciseEditText.getText().toString(), exerciseData);
+                    for (List<String> sequenceGroup: sequenceGroups) {
+                        if (sequenceGroup.contains(exercise)) {
+                            sequenceGroup.remove(sequenceGroup.indexOf(exercise));
+                            sequenceGroup.add(exerciseEditText.getText().toString());
+                        }
+                    }
                 }
 
                 for (int i = 0; i <= exerciseLinearLayout.getChildCount(); i++) {

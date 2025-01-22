@@ -131,7 +131,7 @@ public class WorkoutFragment extends JsonFragment {
         workoutsSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                setupExerciseSeriesSpinner(workoutsIds.get(position));
+                setupSeriesSpinner(workoutsIds.get(position));
             }
 
             @Override
@@ -141,7 +141,7 @@ public class WorkoutFragment extends JsonFragment {
         });
     }
 
-    private void setupExerciseSeriesSpinner(String workoutId) {
+    private void setupSeriesSpinner(String workoutId) {
         try {
             workoutLayout.removeAllViews();
             seriesIds.clear();
@@ -182,10 +182,10 @@ public class WorkoutFragment extends JsonFragment {
         HashMap<String, Object> series = (HashMap<String, Object>) workout.get("Series");
         if (series == null) return;
 
-        HashMap<String, Object> exercises = (HashMap<String, Object>) series.get(serieId);
+        LinkedHashMap<String, Object> exercises = (LinkedHashMap<String, Object>) series.get(serieId);
 
         if (exercises != null) {
-            HashMap<String, Object> exercisesCopy = new HashMap<String, Object>(exercises);
+            LinkedHashMap<String, Object> exercisesCopy = new LinkedHashMap<String, Object>(exercises);
 
             workoutLayout.removeAllViews();
             while (exercisesCopy.keySet().stream().count() > 0){

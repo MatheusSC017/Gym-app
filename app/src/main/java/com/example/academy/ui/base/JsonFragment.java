@@ -44,8 +44,8 @@ public class JsonFragment extends Fragment {
         }
     }
 
-    private static HashMap<String, Object> toMap(JSONObject object) throws JSONException {
-        HashMap<String, Object> map = new HashMap<>();
+    private static LinkedHashMap<String, Object> toMap(JSONObject object) throws JSONException {
+        LinkedHashMap<String, Object> map = new LinkedHashMap<>();
         Iterator<String> keys = object.keys();
         while (keys.hasNext()) {
             String key = (String) keys.next();
