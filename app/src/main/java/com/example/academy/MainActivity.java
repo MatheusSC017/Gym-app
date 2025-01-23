@@ -5,8 +5,11 @@ import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.widget.Toolbar;
 import androidx.drawerlayout.widget.DrawerLayout;
 
+import android.content.Context;
 import android.os.Bundle;
+import android.os.Environment;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -21,8 +24,20 @@ import com.example.academy.ui.history.HistoryFragment;
 import com.example.academy.ui.personal.PersonalFragment;
 import com.example.academy.ui.workout.WorkoutFragment;
 import com.google.android.material.navigation.NavigationView;
+import com.google.gson.Gson;
+
+import org.json.JSONObject;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 
 public class MainActivity extends AppCompatActivity {
+    private static String JSON_FILE = "workouts.json";
+
     private DrawerLayout drawerLayout;
 
     private NavigationView navigationView;
@@ -49,6 +64,10 @@ public class MainActivity extends AppCompatActivity {
                     loadFragment(new WorkoutFragment());
                 } else if (item.getItemId() == R.id.finance) {
                     loadFragment(new FinanceFragment());
+                } else if (item.getItemId() == R.id.upload) {
+                    // Do nothing
+                } else if (item.getItemId() == R.id.download) {
+                    downloadData();
                 } else {
                     loadFragment(new HistoryFragment());
                 }
@@ -98,6 +117,52 @@ public class MainActivity extends AppCompatActivity {
         transaction.replace(R.id.container, fragment);
         transaction.commit();
         drawerLayout.closeDrawers();
+    }
+
+    private void uploadData() {
+        // Do nothing
+    }
+
+    private void downloadData() {
+        String state = Environment.getExternalStorageState();
+
+        if (Environment.MEDIA_MOUNTED.equals(state)) {
+            JSONObject dataJson;
+
+            try (FileInputStream fis = this.openFileInput(JSON_FILE)) {
+                int size = fis.available();
+                byte[] buffer = new byte[size];
+                fis.read(buffer);
+                fis.close();
+                String json = new String(buffer, StandardCharsets.UTF_8);
+
+                dataJson = new JSONObject(json);
+
+            } catch (Exception e) {
+                Toast.makeText(this, "Error loading JSON: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                return;
+            }
+
+            File folder = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+            File file = new File(folder, "treinamento.json");
+
+            FileOutputStream fileOutputStream = null;
+            try {
+                fileOutputStream = new FileOutputStream(file);
+                fileOutputStream.write(dataJson.toString().getBytes());
+                Toast.makeText(this, "Treinamento baixado", Toast.LENGTH_SHORT).show();
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                if (fileOutputStream != null) {
+                    try {
+                        fileOutputStream.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
     }
 
 }
