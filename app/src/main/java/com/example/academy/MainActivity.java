@@ -127,39 +127,44 @@ public class MainActivity extends AppCompatActivity {
         String state = Environment.getExternalStorageState();
 
         if (Environment.MEDIA_MOUNTED.equals(state)) {
-            JSONObject dataJson;
+            JSONObject dataJson = loadInternalJson();
+            saveExternalJson("treinamento.json", dataJson);
+        }
+    }
 
-            try (FileInputStream fis = this.openFileInput(JSON_FILE)) {
-                int size = fis.available();
-                byte[] buffer = new byte[size];
-                fis.read(buffer);
-                fis.close();
-                String json = new String(buffer, StandardCharsets.UTF_8);
+    private JSONObject loadInternalJson() {
+        try (FileInputStream fis = this.openFileInput(JSON_FILE)) {
+            int size = fis.available();
+            byte[] buffer = new byte[size];
+            fis.read(buffer);
+            fis.close();
+            String json = new String(buffer, StandardCharsets.UTF_8);
 
-                dataJson = new JSONObject(json);
+            return new JSONObject(json);
 
-            } catch (Exception e) {
-                Toast.makeText(this, "Error loading JSON: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                return;
-            }
+        } catch (Exception e) {
+            Toast.makeText(this, "Error loading JSON: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            return new JSONObject();
+        }
+    }
 
-            File folder = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-            File file = new File(folder, "treinamento.json");
+    private void saveExternalJson(String name, JSONObject dataJson) {
+        File folder = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+        File file = new File(folder, name);
 
-            FileOutputStream fileOutputStream = null;
-            try {
-                fileOutputStream = new FileOutputStream(file);
-                fileOutputStream.write(dataJson.toString().getBytes());
-                Toast.makeText(this, "Treinamento baixado", Toast.LENGTH_SHORT).show();
-            } catch (Exception e) {
-                e.printStackTrace();
-            } finally {
-                if (fileOutputStream != null) {
-                    try {
-                        fileOutputStream.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+        FileOutputStream fileOutputStream = null;
+        try {
+            fileOutputStream = new FileOutputStream(file);
+            fileOutputStream.write(dataJson.toString().getBytes());
+            Toast.makeText(this, "Treinamento baixado", Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (fileOutputStream != null) {
+                try {
+                    fileOutputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
             }
         }
