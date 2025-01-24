@@ -1,11 +1,18 @@
 package com.example.academy;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContract;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.widget.Toolbar;
 import androidx.drawerlayout.widget.DrawerLayout;
 
+import android.content.ActivityNotFoundException;
+import android.content.ContentResolver;
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.view.MenuItem;
@@ -19,6 +26,7 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
+import com.example.academy.ui.base.ConvertFromJson;
 import com.example.academy.ui.finance.FinanceFragment;
 import com.example.academy.ui.history.HistoryFragment;
 import com.example.academy.ui.personal.PersonalFragment;
@@ -28,10 +36,13 @@ import com.google.gson.Gson;
 
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 
@@ -42,6 +53,8 @@ public class MainActivity extends AppCompatActivity {
 
     private NavigationView navigationView;
     private ActionBarDrawerToggle actionBarDrawerToggle;
+
+    private ActivityResultLauncher<Intent> filePickerLauncher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,7 +78,7 @@ public class MainActivity extends AppCompatActivity {
                 } else if (item.getItemId() == R.id.finance) {
                     loadFragment(new FinanceFragment());
                 } else if (item.getItemId() == R.id.upload) {
-                    // Do nothing
+                    uploadData();
                 } else if (item.getItemId() == R.id.download) {
                     downloadData();
                 } else {
@@ -74,6 +87,19 @@ public class MainActivity extends AppCompatActivity {
                 return false;
             }
         });
+
+        filePickerLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == RESULT_OK) {
+                        Intent data = result.getData();
+                        if (data != null && data.getData() != null) {
+                            Uri uri = data.getData();
+                            handleFileUri(uri);
+                        }
+                    }
+                }
+        );
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.drawerLayout), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -120,7 +146,45 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void uploadData() {
-        // Do nothing
+        String state = Environment.getExternalStorageState();
+
+        if (Environment.MEDIA_MOUNTED.equals(state) ||
+                Environment.MEDIA_MOUNTED_READ_ONLY.equals(state)) {
+            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+            intent.addCategory(Intent.CATEGORY_OPENABLE);
+            intent.setType("application/json");
+            try {
+                filePickerLauncher.launch(intent);
+            } catch (Exception e) {
+                Toast.makeText(this, "Erro ao acessar o armazenamento de dados", Toast.LENGTH_LONG).show();
+            }
+        }
+    }
+
+    private void handleFileUri(Uri uri) {
+        try {
+            ContentResolver resolver = getContentResolver();
+            InputStream inputStream = resolver.openInputStream(uri);
+            if (inputStream != null) {
+                BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+                StringBuilder jsonBuilder = new StringBuilder();
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    jsonBuilder.append(line);
+                }
+                reader.close();
+                inputStream.close();
+
+                JSONObject jsonData = new JSONObject(jsonBuilder.toString());
+                Object loadedData = ConvertFromJson.convert(jsonData);
+
+                if (loadedData != null) {
+                    Toast.makeText(this, "File Content: " + loadedData.toString(), Toast.LENGTH_LONG).show();
+                }
+            }
+        } catch (Exception e) {
+            Toast.makeText(this, "Falha ao ler o arquivo", Toast.LENGTH_LONG).show();
+        }
     }
 
     private void downloadData() {
