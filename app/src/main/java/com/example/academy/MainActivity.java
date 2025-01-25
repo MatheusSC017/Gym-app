@@ -6,6 +6,7 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.widget.Toolbar;
+import androidx.collection.ObjectListKt;
 import androidx.drawerlayout.widget.DrawerLayout;
 
 import android.content.ActivityNotFoundException;
@@ -44,7 +45,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.regex.Pattern;
 
 public class MainActivity extends AppCompatActivity {
     private static String JSON_FILE = "workouts.json";
@@ -179,12 +184,87 @@ public class MainActivity extends AppCompatActivity {
                 Object loadedData = ConvertFromJson.convert(jsonData);
 
                 if (loadedData != null) {
-                    Toast.makeText(this, "File Content: " + loadedData.toString(), Toast.LENGTH_LONG).show();
+                    validateJsonData(loadedData);
                 }
             }
         } catch (Exception e) {
             Toast.makeText(this, "Falha ao ler o arquivo", Toast.LENGTH_LONG).show();
         }
+    }
+
+    private void validateJsonData(Object loadedData) {
+        if (loadedData instanceof HashMap) {
+            HashMap<String, Object> dataMap = (HashMap<String, Object>) loadedData;
+            HashMap<String, Object> validDateMap = getValidDates(dataMap);
+            Toast.makeText(this, validDateMap.toString(), Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private HashMap<String, Object> getValidDates(HashMap<String, Object> dataMap) {
+        HashMap<String, Object> validDateMap = new HashMap<>();
+        for (String date: dataMap.keySet()) {
+            if (isValidDate(date)) {
+                validDateMap.put(date, getValidSubItems((HashMap<String, Object>) dataMap.get(date)));
+            }
+        }
+        return validDateMap;
+    }
+
+    private boolean isValidDate(String date) {
+        String regex = "\\d{2}/\\d{4}";
+
+        return date != null && date.length() == 7 && Pattern.matches(regex, date);
+    }
+
+    private HashMap<String, Object> getValidSubItems(HashMap<String, Object> subItems) {
+        HashMap<String, Object> validSubItems = new HashMap<>();
+        for (String item: subItems.keySet()) {
+            switch (item) {
+                case "Personal":
+                    validSubItems.put(item, subItems.get(item));
+                    break;
+                case "Series":
+                    validSubItems.put(item, getValidSeries((HashMap<String, Object>) subItems.get(item)));
+                    break;
+            }
+        }
+        return validSubItems;
+    }
+
+    private HashMap<String, Object> getValidSeries(HashMap<String, Object> series) {
+        HashMap<String, Object> validSeries = new HashMap<>();
+        series.forEach((serieName, value) -> {
+            if (value instanceof LinkedHashMap) {
+                LinkedHashMap<String, HashMap> exercises = (LinkedHashMap<String, HashMap>) value;
+                validSeries.put(serieName, exercises);
+            }
+        });
+        return validSeries;
+    }
+
+    private LinkedHashMap<String, HashMap> getValidExercises(LinkedHashMap<String, HashMap> exercises) {
+        List<String> exerciseInfo = Arrays.asList("Series", "Type", "Quantity", "Muscle", "Sequence", "Observation");
+        LinkedHashMap<String, HashMap> validExercises = new LinkedHashMap<>();
+        exercises.forEach((exerciseName, exerciseData) -> {
+            HashMap<String, Object> validExerciseDate = new HashMap<>();
+            exerciseData.forEach((key, value) -> {
+                if (exerciseInfo.contains((String) key)) {
+                    validExerciseDate.put((String) key, value);
+                }
+            });
+            if (hasRequiredExerciseKeys(validExerciseDate, exerciseInfo.subList(0, 3))) {
+                validExercises.put(exerciseName, exerciseData);
+            }
+
+        });
+        return validExercises;
+    }
+
+    private static boolean hasRequiredExerciseKeys(HashMap<String, Object> exerciseMap, List<String> keys) {
+        for (String key: keys) {
+            if (!exerciseMap.containsKey(key)) return false;
+        }
+        return true;
     }
 
     private void downloadData() {
