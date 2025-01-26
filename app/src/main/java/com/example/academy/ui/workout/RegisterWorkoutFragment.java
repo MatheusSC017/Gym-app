@@ -9,28 +9,10 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.os.Bundle;
 
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.ViewStub;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.FrameLayout;
-import android.widget.LinearLayout;
-import android.widget.Spinner;
-import android.widget.TextView;
-import android.widget.Toast;
+import android.view.*;
+import android.widget.*;
 
-import androidx.fragment.app.FragmentTransaction;
-
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -42,9 +24,9 @@ public class RegisterWorkoutFragment extends JsonFragment {
     private static Boolean editable = false;
 
     private List<String> seriesNames = new ArrayList<>();
-    private ArrayList<ArrayList<Object>> seriesList = new ArrayList<>();
-    private HashMap<String, HashMap> exercisesSerie;
-    private List<ArrayList<String>> sequenceGroups;
+    private List<List<Object>> seriesList = new ArrayList<>();
+    private LinkedHashMap<String, HashMap> exercisesSerie;
+    private List<List<String>> sequenceGroups;
 
     private LinearLayout exerciseLinearLayout;
     private Spinner seriesSpinner;
@@ -112,9 +94,9 @@ public class RegisterWorkoutFragment extends JsonFragment {
             seriesNames = seriesData.keySet().stream().collect(Collectors.toList());
 
             for (String serieName : seriesNames) {
-                HashMap<String, HashMap> exercises = seriesData.get(serieName);
+                LinkedHashMap<String, HashMap> exercises = (LinkedHashMap<String, HashMap>) seriesData.get(serieName);
 
-                ArrayList<Object> serie = new ArrayList<>();
+                List<Object> serie = new ArrayList<>();
                 serie.add(serieName);
                 serie.add(exercises);
                 serie.add(loadSequenceArray(exercises));
@@ -129,22 +111,22 @@ public class RegisterWorkoutFragment extends JsonFragment {
         }
     }
 
-    private ArrayList<ArrayList<String>> loadSequenceArray(HashMap<String, HashMap> exercises) {
-        ArrayList<ArrayList<String>> sequenceArray = new ArrayList<>();
+    private List<List<String>> loadSequenceArray(HashMap<String, HashMap> exercises) {
+        List<List<String>> sequenceArray = new ArrayList<>();
         for (int i = 0; i < SEQUENCE_AVAILABLE_SELECTION; i++) sequenceArray.add(new ArrayList<>());
 
         if (exercises != null && !exercises.isEmpty()) {
             AtomicInteger sequenceCounter = new AtomicInteger(0);
-            ArrayList<String> recordedSequenceExercises = new ArrayList<>();
+            List<String> recordedSequenceExercises = new ArrayList<>();
 
             exercises.forEach((String exerciseName, HashMap exerciseData) -> {
                 if (!recordedSequenceExercises.contains(exerciseName) &&
                         exerciseData.containsKey("Sequence") &&
-                        ((ArrayList) exerciseData.get("Sequence")).size() > 0) {
-                    recordedSequenceExercises.addAll((ArrayList) exerciseData.get("Sequence"));
+                        ((List) exerciseData.get("Sequence")).size() > 0) {
+                    recordedSequenceExercises.addAll((List) exerciseData.get("Sequence"));
                     int index = sequenceCounter.getAndIncrement();
                     sequenceArray.get(index).add(exerciseName);
-                    sequenceArray.get(index).addAll((ArrayList) exerciseData.get("Sequence"));
+                    sequenceArray.get(index).addAll((List) exerciseData.get("Sequence"));
                 }
             });
         }
@@ -190,12 +172,12 @@ public class RegisterWorkoutFragment extends JsonFragment {
 
     private void addNewSerie(String serieName) {
         int selectedSerieIndex = seriesSpinner.getSelectedItemPosition();
-        ArrayList<ArrayList<String>> sequenceArray = new ArrayList<>();
+        List<List<String>> sequenceArray = new ArrayList<>();
         for (int i = 0; i < SEQUENCE_AVAILABLE_SELECTION; i++) sequenceArray.add(new ArrayList<>());
 
-        ArrayList<Object> serie = new ArrayList<>();
+        List<Object> serie = new ArrayList<>();
         serie.add(serieName);
-        serie.add(new HashMap<>());
+        serie.add(new LinkedHashMap<>());
         serie.add(sequenceArray);
         seriesList.add(serie);
         seriesNames.add(serieName);
@@ -217,7 +199,7 @@ public class RegisterWorkoutFragment extends JsonFragment {
     }
 
     private void setSeriesSpinner() {
-        ArrayList<String> seriesNamesFormatted = new ArrayList<>();
+        List<String> seriesNamesFormatted = new ArrayList<>();
         for (int i = 0; i < seriesNames.size(); i++) {
             seriesNamesFormatted.add(getLetter(i) + "- " + seriesNames.get(i));
         }
@@ -229,10 +211,10 @@ public class RegisterWorkoutFragment extends JsonFragment {
         seriesSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
-                exercisesSerie = (HashMap<String, HashMap>) seriesList.get(position).get(1);
+                exercisesSerie = (LinkedHashMap<String, HashMap>) seriesList.get(position).get(1);
 
 
-                sequenceGroups = (List<ArrayList<String>>) seriesList.get(position).get(2);
+                sequenceGroups = (List<List<String>>) seriesList.get(position).get(2);
 
                 exerciseLinearLayout.removeAllViews();
                 exercisesSerie.forEach((exerciseName, exerciseData) -> {
@@ -371,6 +353,12 @@ public class RegisterWorkoutFragment extends JsonFragment {
                 if (!exerciseEditText.getText().toString().equals(exercise)) {
                     exercisesSerie.remove(exercise);
                     exercisesSerie.put(exerciseEditText.getText().toString(), exerciseData);
+                    for (List<String> sequenceGroup: sequenceGroups) {
+                        if (sequenceGroup.contains(exercise)) {
+                            sequenceGroup.remove(sequenceGroup.indexOf(exercise));
+                            sequenceGroup.add(exerciseEditText.getText().toString());
+                        }
+                    }
                 }
 
                 for (int i = 0; i <= exerciseLinearLayout.getChildCount(); i++) {
@@ -486,10 +474,10 @@ public class RegisterWorkoutFragment extends JsonFragment {
             HashMap<String, HashMap> series = new HashMap<>();
 
             for (int i = 0; i < seriesList.size(); i++) {
-                ArrayList<Object> serieData = seriesList.get(i);
+                List<Object> serieData = seriesList.get(i);
                 HashMap<String, Object> exercisesMap = (HashMap) serieData.get(1);
-                ArrayList<ArrayList<String>> sequenceMap = (ArrayList<ArrayList<String>>) serieData.get(2);
-                for (ArrayList<String> sequence: sequenceMap) {
+                List<List<String>> sequenceMap = (List<List<String>>) serieData.get(2);
+                for (List<String> sequence: sequenceMap) {
                     if (sequence.stream().count() > 1) {
                         for (String exercise: sequence) ((HashMap) exercisesMap.get(exercise)).put("Sequence", sequence);
                     }

@@ -3,27 +3,14 @@ package com.example.academy.ui.workout;
 import android.app.AlertDialog;
 import android.os.Bundle;
 
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.Spinner;
-import android.widget.TextView;
-import android.widget.Toast;
+import android.view.*;
+import android.widget.*;
 
 import com.example.academy.MainActivity;
 import com.example.academy.R;
 import com.example.academy.ui.base.JsonFragment;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -144,7 +131,7 @@ public class WorkoutFragment extends JsonFragment {
         workoutsSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                setupExerciseSeriesSpinner(workoutsIds.get(position));
+                setupSeriesSpinner(workoutsIds.get(position));
             }
 
             @Override
@@ -154,7 +141,7 @@ public class WorkoutFragment extends JsonFragment {
         });
     }
 
-    private void setupExerciseSeriesSpinner(String workoutId) {
+    private void setupSeriesSpinner(String workoutId) {
         try {
             workoutLayout.removeAllViews();
             seriesIds.clear();
@@ -195,10 +182,10 @@ public class WorkoutFragment extends JsonFragment {
         HashMap<String, Object> series = (HashMap<String, Object>) workout.get("Series");
         if (series == null) return;
 
-        HashMap<String, Object> exercises = (HashMap<String, Object>) series.get(serieId);
+        LinkedHashMap<String, Object> exercises = (LinkedHashMap<String, Object>) series.get(serieId);
 
         if (exercises != null) {
-            HashMap<String, Object> exercisesCopy = new HashMap<String, Object>(exercises);
+            LinkedHashMap<String, Object> exercisesCopy = new LinkedHashMap<String, Object>(exercises);
 
             workoutLayout.removeAllViews();
             while (exercisesCopy.keySet().stream().count() > 0){

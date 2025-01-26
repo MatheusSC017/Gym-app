@@ -3,28 +3,16 @@ package com.example.academy.ui.personal;
 import android.app.AlertDialog;
 import android.os.Bundle;
 
-import androidx.fragment.app.Fragment;
-
 import android.text.InputType;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.ViewStub;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.LinearLayout;
-import android.widget.TextView;
-import android.widget.Toast;
+import android.view.*;
+import android.widget.*;
 
 import com.example.academy.MainActivity;
 import com.example.academy.R;
 import com.example.academy.ui.base.JsonFragment;
-import com.example.academy.ui.workout.WorkoutFragment;
 import com.example.academy.view.EditTextDate;
 
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
+import java.util.*;
 
 public class RegisterPersonalFragment extends JsonFragment {
     private static String WORKOUTS_FILE = "workouts.json";
