@@ -221,7 +221,7 @@ public class MainActivity extends AppCompatActivity {
         for (String item: subItems.keySet()) {
             switch (item) {
                 case "Personal":
-                    validSubItems.put(item, subItems.get(item));
+                    validSubItems.put(item, getValidPersonalData((HashMap<String, Object>) subItems.get(item)));
                     break;
                 case "Series":
                     validSubItems.put(item, getValidSeries((HashMap<String, Object>) subItems.get(item)));
@@ -236,7 +236,7 @@ public class MainActivity extends AppCompatActivity {
         series.forEach((serieName, value) -> {
             if (value instanceof LinkedHashMap) {
                 LinkedHashMap<String, HashMap> exercises = (LinkedHashMap<String, HashMap>) value;
-                validSeries.put(serieName, exercises);
+                validSeries.put(serieName, getValidExercises(exercises));
             }
         });
         return validSeries;
@@ -265,6 +265,36 @@ public class MainActivity extends AppCompatActivity {
             if (!exerciseMap.containsKey(key)) return false;
         }
         return true;
+    }
+
+    private HashMap<String, Object> getValidPersonalData(HashMap<String, Object> personalData) {
+        HashMap<String, Object> validPersonalData = new HashMap<>();
+        List<String> allowedKeys = Arrays.asList("Weight", "Height", "Lean mass", "Fat weight", "Fat percentage", "IMC", "Folds", "Measures");
+        personalData.forEach((key, value) -> {
+            if (allowedKeys.subList(0, 6).contains(key) &&
+                    value != null &&
+                    (value instanceof Double ||
+                    (value instanceof String) && isNumeric((String) value))) {
+                validPersonalData.put(key, value);
+            }
+            if (allowedKeys.subList(6, 8).contains(key) &&
+                value instanceof HashMap){
+                validPersonalData.put(key, value);
+            }
+        });
+        return validPersonalData;
+    }
+
+    public static boolean isNumeric(String str) {
+        if (str == null || str.isEmpty()) {
+            return false;
+        }
+        try {
+            Double.parseDouble(str);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
     }
 
     private void downloadData() {
