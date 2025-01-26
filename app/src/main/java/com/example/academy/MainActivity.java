@@ -153,8 +153,7 @@ public class MainActivity extends AppCompatActivity {
     private void uploadData() {
         String state = Environment.getExternalStorageState();
 
-        if (Environment.MEDIA_MOUNTED.equals(state) ||
-                Environment.MEDIA_MOUNTED_READ_ONLY.equals(state)) {
+        if (Environment.MEDIA_MOUNTED.equals(state)) {
             Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
             intent.addCategory(Intent.CATEGORY_OPENABLE);
             intent.setType("application/json");
@@ -184,7 +183,11 @@ public class MainActivity extends AppCompatActivity {
                 Object loadedData = ConvertFromJson.convert(jsonData);
 
                 if (loadedData != null) {
-                    validateJsonData(loadedData);
+                    HashMap<String, Object> validDateMap = validateJsonData(loadedData);
+                    JSONObject dataJson = loadInternalJson();
+                    HashMap<String, Object> internalDataJson = (HashMap<String, Object>) ConvertFromJson.convert(dataJson);
+                    internalDataJson.putAll(validDateMap);
+                    saveToInternalStorage(internalDataJson);
                 }
             }
         } catch (Exception e) {
@@ -192,12 +195,14 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void validateJsonData(Object loadedData) {
+    private HashMap<String, Object> validateJsonData(Object loadedData) {
         if (loadedData instanceof HashMap) {
             HashMap<String, Object> dataMap = (HashMap<String, Object>) loadedData;
             HashMap<String, Object> validDateMap = getValidDates(dataMap);
-            Toast.makeText(this, validDateMap.toString(), Toast.LENGTH_LONG).show();
+            Toast.makeText(this, loadedData.toString(), Toast.LENGTH_LONG).show();
+            return validDateMap;
         }
+        return new HashMap<>();
     }
 
     private HashMap<String, Object> getValidDates(HashMap<String, Object> dataMap) {
@@ -294,6 +299,17 @@ public class MainActivity extends AppCompatActivity {
             return true;
         } catch (NumberFormatException e) {
             return false;
+        }
+    }
+
+    public void saveToInternalStorage(HashMap<String, Object> mapData) {
+        Gson gson = new Gson();
+
+        try (FileOutputStream fos = openFileOutput(JSON_FILE, Context.MODE_PRIVATE)) {
+            String jsonData = gson.toJson(mapData);
+            fos.write(jsonData.toString().getBytes());
+        } catch (Exception e) {
+            Toast.makeText(this, "Error saving file: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
 
