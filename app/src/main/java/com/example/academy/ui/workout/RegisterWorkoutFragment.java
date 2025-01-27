@@ -471,7 +471,7 @@ public class RegisterWorkoutFragment extends JsonFragment {
                 }
             }
 
-            HashMap<String, HashMap> series = new HashMap<>();
+            LinkedHashMap<String, HashMap> series = new LinkedHashMap<>();
 
             for (int i = 0; i < seriesList.size(); i++) {
                 List<Object> serieData = seriesList.get(i);
