@@ -5,12 +5,18 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.CalendarView;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
 
 import com.example.academy.R;
 import com.example.academy.ui.base.JsonFragment;
 
-import java.util.Collections;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -23,15 +29,52 @@ public class HistoryFragment extends JsonFragment {
     private LinkedHashMap<String, HashMap> currentWorkout;
     private HashMap<String, Object> trainingHistory;
 
+    private String currentSerieId;
+
+    private Button selectDateButton;
+    private CalendarView trainingCalendarView;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.fragment_history, container, false);
+
         currentWorkout = loadWorkoutData();
         trainingHistory = loadTrainingHistoryData();
-        Toast.makeText(getContext(), currentWorkout.keySet().toString(), Toast.LENGTH_LONG).show();
-        Toast.makeText(getContext(), trainingHistory.keySet().toString(), Toast.LENGTH_LONG).show();
 
-        return inflater.inflate(R.layout.fragment_history, container, false);
+        List<String> seriesIds = currentWorkout.keySet().stream().collect(Collectors.toList());
+        currentSerieId = String.valueOf(seriesIds.get(0));
+        if (trainingHistory.size() != 0) {
+            List<String> historyDates = new ArrayList<>(trainingHistory.keySet());
+
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            historyDates.sort(Comparator.comparing(key -> LocalDate.parse(key, formatter)));
+
+            String lastTrainingDate = historyDates.get(historyDates.size() - 1);
+            HashMap<String, Object> lastTrainingInfo = (HashMap<String, Object>) trainingHistory.get(lastTrainingDate);
+            if (lastTrainingInfo.containsKey("SerieName")) {
+                String lastSerie = (String) lastTrainingInfo.get("SerieName");
+                int lastSerieIndex = seriesIds.indexOf(lastSerie);
+                if (lastSerieIndex >= 0) {
+                    currentSerieId = String.valueOf(seriesIds.get((lastSerieIndex < seriesIds.size()) ? (lastSerieIndex + 1) : 0)) ;
+                }
+            }
+        }
+
+        selectDateButton = view.findViewById(R.id.selectDateButton);
+        trainingCalendarView = view.findViewById(R.id.trainingCalendarView);
+        trainingCalendarView.setVisibility(View.GONE);
+
+        selectDateButton.setOnClickListener(event -> trainingCalendarView.setVisibility(View.VISIBLE));
+        trainingCalendarView.setOnDateChangeListener(new CalendarView.OnDateChangeListener() {
+
+            @Override
+            public void onSelectedDayChange(@NonNull CalendarView calendarView, int year, int month, int day) {
+                trainingCalendarView.setVisibility(View.GONE);
+            }
+        });
+
+        return view;
     }
 
     private LinkedHashMap<String, HashMap> loadWorkoutData() {

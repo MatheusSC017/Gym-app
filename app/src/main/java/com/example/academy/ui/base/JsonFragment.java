@@ -16,6 +16,8 @@ public class JsonFragment extends Fragment {
     private HashMap<String, Object> dataMap;
 
     public HashMap<String, Object> loadJsonData(String filePath) {
+        dataMap = new HashMap<>();
+
         try (FileInputStream fis = getContext().openFileInput(filePath)) {
             int size = fis.available();
             byte[] buffer = new byte[size];
@@ -27,7 +29,6 @@ public class JsonFragment extends Fragment {
             dataMap = (HashMap<String, Object>) ConvertFromJson.convert(dataJson);
             return dataMap;
         } catch (Exception e) {
-            Toast.makeText(requireContext(), "Error loading JSON: " + e.getMessage(), Toast.LENGTH_LONG).show();
             return dataMap;
         }
     }

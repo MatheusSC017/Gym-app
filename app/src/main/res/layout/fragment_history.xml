@@ -12,7 +12,7 @@
         android:layout_height="match_parent">
 
         <CalendarView
-            android:id="@+id/calendarView"
+            android:id="@+id/trainingCalendarView"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginLeft="8dp"
@@ -23,6 +23,7 @@
             app:layout_constraintTop_toTopOf="parent" />
 
         <FrameLayout
+            android:id="@+id/contentLayout"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_marginLeft="8dp"
@@ -32,8 +33,32 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/calendarView">
+            app:layout_constraintTop_toBottomOf="@+id/trainingCalendarView">
 
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <TextView
+                    android:id="@+id/dateTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="27/01/2025"
+                    android:textSize="24sp"
+                    android:textStyle="bold"
+                    app:layout_constraintBottom_toBottomOf="@+id/selectDateButton"
+                    app:layout_constraintEnd_toStartOf="@+id/selectDateButton"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <Button
+                    android:id="@+id/selectDateButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Selecionar"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
         </FrameLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
 </FrameLayout>

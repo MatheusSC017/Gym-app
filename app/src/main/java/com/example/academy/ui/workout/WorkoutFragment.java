@@ -74,9 +74,9 @@ public class WorkoutFragment extends JsonFragment {
                         int month2 = Integer.parseInt(parts2[0]);
 
                         if (year1 != year2) {
-                            return Integer.compare(year2, year1); // Descending order by year
+                            return Integer.compare(year2, year1);
                         } else {
-                            return Integer.compare(month2, month1); // Descending order by month
+                            return Integer.compare(month2, month1);
                         }
                     }
                 };
