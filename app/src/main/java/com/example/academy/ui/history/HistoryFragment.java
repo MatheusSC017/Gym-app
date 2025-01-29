@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CalendarView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -14,10 +15,13 @@ import androidx.annotation.NonNull;
 import com.example.academy.R;
 import com.example.academy.ui.base.JsonFragment;
 
+import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -29,8 +33,14 @@ public class HistoryFragment extends JsonFragment {
     private LinkedHashMap<String, HashMap> currentWorkout;
     private HashMap<String, Object> trainingHistory;
 
+    DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    DecimalFormat twoDecimalFormatter = new DecimalFormat("00");
+
+    private String lastTrainingDate;
+    private LocalDate currentTrainingDate;
     private String currentSerieId;
 
+    private TextView dateTextView;
     private Button selectDateButton;
     private CalendarView trainingCalendarView;
 
@@ -47,10 +57,9 @@ public class HistoryFragment extends JsonFragment {
         if (trainingHistory.size() != 0) {
             List<String> historyDates = new ArrayList<>(trainingHistory.keySet());
 
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-            historyDates.sort(Comparator.comparing(key -> LocalDate.parse(key, formatter)));
+            historyDates.sort(Comparator.comparing(key -> LocalDate.parse(key, dateFormatter)));
 
-            String lastTrainingDate = historyDates.get(historyDates.size() - 1);
+            lastTrainingDate = historyDates.get(historyDates.size() - 1);
             HashMap<String, Object> lastTrainingInfo = (HashMap<String, Object>) trainingHistory.get(lastTrainingDate);
             if (lastTrainingInfo.containsKey("SerieName")) {
                 String lastSerie = (String) lastTrainingInfo.get("SerieName");
@@ -59,17 +68,24 @@ public class HistoryFragment extends JsonFragment {
                     currentSerieId = String.valueOf(seriesIds.get((lastSerieIndex < seriesIds.size()) ? (lastSerieIndex + 1) : 0)) ;
                 }
             }
+
         }
 
+        dateTextView = view.findViewById(R.id.dateTextView);
         selectDateButton = view.findViewById(R.id.selectDateButton);
         trainingCalendarView = view.findViewById(R.id.trainingCalendarView);
         trainingCalendarView.setVisibility(View.GONE);
 
+        setCurrentDate();
         selectDateButton.setOnClickListener(event -> trainingCalendarView.setVisibility(View.VISIBLE));
         trainingCalendarView.setOnDateChangeListener(new CalendarView.OnDateChangeListener() {
-
             @Override
             public void onSelectedDayChange(@NonNull CalendarView calendarView, int year, int month, int day) {
+                String currentDate = twoDecimalFormatter.format(day) + "/" + twoDecimalFormatter.format(month + 1) + "/" + year;
+                currentTrainingDate = LocalDate.parse(currentDate, dateFormatter);
+                selectTraining();
+
+                dateTextView.setText(currentDate);
                 trainingCalendarView.setVisibility(View.GONE);
             }
         });
@@ -124,6 +140,24 @@ public class HistoryFragment extends JsonFragment {
         } catch (Exception e) {
             Toast.makeText(requireContext(), "Error extracting history: " + e.getMessage(), Toast.LENGTH_LONG).show();
             return new HashMap<>();
+        }
+    }
+
+    private void setCurrentDate() {
+        Date today = new Date();
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(today);
+
+        String currentDate = calendar.get(Calendar.DAY_OF_MONTH) + "/" + twoDecimalFormatter.format(calendar.get(Calendar.MONTH) + 1) + "/" + calendar.get(Calendar.YEAR);
+        currentTrainingDate = LocalDate.parse(currentDate, dateFormatter);
+        selectTraining();
+
+        dateTextView.setText(currentDate);
+    }
+
+    private void selectTraining() {
+        if (currentTrainingDate.compareTo(LocalDate.parse(lastTrainingDate, dateFormatter)) <= 0) {
+            // Do nothing
         }
     }
 
