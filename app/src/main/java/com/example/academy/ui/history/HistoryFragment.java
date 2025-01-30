@@ -37,10 +37,11 @@ public class HistoryFragment extends JsonFragment {
     DecimalFormat twoDecimalFormatter = new DecimalFormat("00");
 
     private String lastTrainingDate;
-    private LocalDate currentTrainingDate;
+    private String currentTrainingDate;
     private String currentSerieId;
 
     private TextView dateTextView;
+    private TextView serieTextView;
     private Button selectDateButton;
     private CalendarView trainingCalendarView;
 
@@ -72,20 +73,23 @@ public class HistoryFragment extends JsonFragment {
         }
 
         dateTextView = view.findViewById(R.id.dateTextView);
+        setCurrentDate();
+
+        serieTextView = view.findViewById(R.id.serieTextView);
+        serieTextView.setText(currentSerieId);
+
         selectDateButton = view.findViewById(R.id.selectDateButton);
+        selectDateButton.setOnClickListener(event -> trainingCalendarView.setVisibility(View.VISIBLE));
+
         trainingCalendarView = view.findViewById(R.id.trainingCalendarView);
         trainingCalendarView.setVisibility(View.GONE);
-
-        setCurrentDate();
-        selectDateButton.setOnClickListener(event -> trainingCalendarView.setVisibility(View.VISIBLE));
         trainingCalendarView.setOnDateChangeListener(new CalendarView.OnDateChangeListener() {
             @Override
             public void onSelectedDayChange(@NonNull CalendarView calendarView, int year, int month, int day) {
-                String currentDate = twoDecimalFormatter.format(day) + "/" + twoDecimalFormatter.format(month + 1) + "/" + year;
-                currentTrainingDate = LocalDate.parse(currentDate, dateFormatter);
+                currentTrainingDate = twoDecimalFormatter.format(day) + "/" + twoDecimalFormatter.format(month + 1) + "/" + year;
                 selectTraining();
 
-                dateTextView.setText(currentDate);
+                dateTextView.setText(currentTrainingDate);
                 trainingCalendarView.setVisibility(View.GONE);
             }
         });
@@ -148,16 +152,24 @@ public class HistoryFragment extends JsonFragment {
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(today);
 
-        String currentDate = calendar.get(Calendar.DAY_OF_MONTH) + "/" + twoDecimalFormatter.format(calendar.get(Calendar.MONTH) + 1) + "/" + calendar.get(Calendar.YEAR);
-        currentTrainingDate = LocalDate.parse(currentDate, dateFormatter);
-        selectTraining();
+        currentTrainingDate = calendar.get(Calendar.DAY_OF_MONTH) + "/" + twoDecimalFormatter.format(calendar.get(Calendar.MONTH) + 1) + "/" + calendar.get(Calendar.YEAR);
 
-        dateTextView.setText(currentDate);
+        dateTextView.setText(currentTrainingDate);
     }
 
     private void selectTraining() {
-        if (currentTrainingDate.compareTo(LocalDate.parse(lastTrainingDate, dateFormatter)) <= 0) {
-            // Do nothing
+        LocalDate currentTrainingLocalDate = LocalDate.parse(currentTrainingDate, dateFormatter);
+        LocalDate lastTrainingLocalDate = LocalDate.parse(lastTrainingDate, dateFormatter);
+        if (currentTrainingLocalDate.compareTo(lastTrainingLocalDate) <= 0) {
+            HashMap<String, Object> serieInfo = (HashMap<String, Object>) trainingHistory.get(currentTrainingDate);
+            if (serieInfo != null) {
+                serieTextView.setText((String) serieInfo.getOrDefault("SerieName", "Não houve treino nesta data."));
+            } else {
+                serieTextView.setText("Não houve treino nesta data.");
+            }
+        } else {
+            serieTextView.setText(currentSerieId);
+            Toast.makeText(getContext(), currentSerieId, Toast.LENGTH_LONG).show();
         }
     }
 
