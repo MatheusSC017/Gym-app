@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CalendarView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -44,6 +45,7 @@ public class HistoryFragment extends JsonFragment {
     private TextView serieTextView;
     private Button selectDateButton;
     private CalendarView trainingCalendarView;
+    private LinearLayout exercisesLinearLayout;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -72,11 +74,14 @@ public class HistoryFragment extends JsonFragment {
 
         }
 
+        exercisesLinearLayout = view.findViewById(R.id.exercisesLinearLayout);
+
         dateTextView = view.findViewById(R.id.dateTextView);
         setCurrentDate();
 
         serieTextView = view.findViewById(R.id.serieTextView);
         serieTextView.setText(currentSerieId);
+        setExercises(currentSerieId);
 
         selectDateButton = view.findViewById(R.id.selectDateButton);
         selectDateButton.setOnClickListener(event -> trainingCalendarView.setVisibility(View.VISIBLE));
@@ -163,13 +168,41 @@ public class HistoryFragment extends JsonFragment {
         if (currentTrainingLocalDate.compareTo(lastTrainingLocalDate) <= 0) {
             HashMap<String, Object> serieInfo = (HashMap<String, Object>) trainingHistory.get(currentTrainingDate);
             if (serieInfo != null) {
-                serieTextView.setText((String) serieInfo.getOrDefault("SerieName", "Não houve treino nesta data."));
+                String serieName = (String) serieInfo.get("SerieName");
+                serieTextView.setText(serieName != null ? serieName : "Não houve treino nesta data.");
+                setExercises(serieName);
             } else {
                 serieTextView.setText("Não houve treino nesta data.");
             }
-        } else {
+        } else if (currentTrainingLocalDate.isEqual(LocalDate.now())) {
             serieTextView.setText(currentSerieId);
-            Toast.makeText(getContext(), currentSerieId, Toast.LENGTH_LONG).show();
+            setExercises(currentSerieId);
+        } else {
+            serieTextView.setText("Não houve treino nesta data.");
+        }
+    }
+
+    private void setExercises(String serie) {
+        LinkedHashMap<String, HashMap> exercises = (LinkedHashMap<String, HashMap>) currentWorkout.get(serie);
+        exercisesLinearLayout.removeAllViews();
+        if (exercises != null) {
+            exercises.forEach((exerciseName, exerciseData) -> {
+                View exerciseCard = LayoutInflater.from(getContext()).inflate(R.layout.exercise_layout, exercisesLinearLayout, false);
+
+                TextView exerciseTextView = exerciseCard.findViewById(R.id.exerciseTextView);
+                TextView muscleTextView = exerciseCard.findViewById(R.id.muscleTextView);
+                TextView seriesTextView = exerciseCard.findViewById(R.id.seriesTextView);
+                TextView repetitionsTextView = exerciseCard.findViewById(R.id.repetitionsTextView);
+
+                exerciseTextView.setText(exerciseName);
+                muscleTextView.setText(exerciseData.get("Muscle").toString());
+
+                String series = exerciseData.getOrDefault("Series", "1").toString();
+                if (!series.equals("1")) seriesTextView.setText(series + " x");
+
+                repetitionsTextView.setText(exerciseData.getOrDefault("Quantity", "").toString() + " " + exerciseData.getOrDefault("Type", "").toString());
+                exercisesLinearLayout.addView(exerciseCard);
+            });
         }
     }
 
