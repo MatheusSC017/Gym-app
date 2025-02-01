@@ -56,6 +56,9 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Selecionar"
+                    style="@style/StandardButtonStyle"
+                    app:backgroundTint="@null"
+                    app:drawableTint="@null"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
@@ -71,10 +74,11 @@
                     app:layout_constraintTop_toBottomOf="@+id/dateTextView" />
 
                 <ScrollView
+                    android:id="@+id/scrollView2"
                     android:layout_width="0dp"
                     android:layout_height="0dp"
                     android:layout_marginTop="8dp"
-                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintBottom_toTopOf="@+id/saveButton"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/serieTextView">
@@ -85,6 +89,18 @@
                         android:layout_height="wrap_content"
                         android:orientation="vertical" />
                 </ScrollView>
+
+                <Button
+                    android:id="@+id/saveButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Treinamento Completo"
+                    style="@style/StandardButtonStyle"
+                    app:backgroundTint="@null"
+                    app:drawableTint="@null"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent" />
             </androidx.constraintlayout.widget.ConstraintLayout>
         </FrameLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>

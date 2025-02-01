@@ -20,9 +20,7 @@ import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -46,6 +44,7 @@ public class HistoryFragment extends JsonFragment {
     private Button selectDateButton;
     private CalendarView trainingCalendarView;
     private LinearLayout exercisesLinearLayout;
+    private Button saveButton;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -66,9 +65,16 @@ public class HistoryFragment extends JsonFragment {
             HashMap<String, Object> lastTrainingInfo = (HashMap<String, Object>) trainingHistory.get(lastTrainingDate);
             if (lastTrainingInfo.containsKey("SerieName")) {
                 String lastSerie = (String) lastTrainingInfo.get("SerieName");
-                int lastSerieIndex = seriesIds.indexOf(lastSerie);
-                if (lastSerieIndex >= 0) {
-                    currentSerieId = String.valueOf(seriesIds.get((lastSerieIndex < seriesIds.size()) ? (lastSerieIndex + 1) : 0)) ;
+
+                LocalDate today = LocalDate.now();
+                String currentDate = twoDecimalFormatter.format(today.getDayOfMonth()) + "/" + twoDecimalFormatter.format(today.getMonthValue()) + "/" + today.getYear();
+                if (lastTrainingDate.equals(currentDate)) {
+                    currentSerieId = lastSerie;
+                } else {
+                    int lastSerieIndex = seriesIds.indexOf(lastSerie);
+                    if (lastSerieIndex >= 0) {
+                        currentSerieId = String.valueOf(seriesIds.get((lastSerieIndex < seriesIds.size()) ? (lastSerieIndex + 1) : 0));
+                    }
                 }
             }
 
@@ -98,6 +104,9 @@ public class HistoryFragment extends JsonFragment {
                 trainingCalendarView.setVisibility(View.GONE);
             }
         });
+
+        saveButton = view.findViewById(R.id.saveButton);
+        saveButton.setOnClickListener(event -> saveHistory());
 
         return view;
     }
@@ -153,12 +162,8 @@ public class HistoryFragment extends JsonFragment {
     }
 
     private void setCurrentDate() {
-        Date today = new Date();
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(today);
-
-        currentTrainingDate = calendar.get(Calendar.DAY_OF_MONTH) + "/" + twoDecimalFormatter.format(calendar.get(Calendar.MONTH) + 1) + "/" + calendar.get(Calendar.YEAR);
-
+        LocalDate today = LocalDate.now();
+        currentTrainingDate = twoDecimalFormatter.format(today.getDayOfMonth()) + "/" + twoDecimalFormatter.format(today.getMonthValue()) + "/" + today.getYear();
         dateTextView.setText(currentTrainingDate);
     }
 
@@ -173,12 +178,17 @@ public class HistoryFragment extends JsonFragment {
                 setExercises(serieName);
             } else {
                 serieTextView.setText("Não houve treino nesta data.");
+                exercisesLinearLayout.removeAllViews();
             }
+            saveButton.setVisibility(View.GONE);
         } else if (currentTrainingLocalDate.isEqual(LocalDate.now())) {
             serieTextView.setText(currentSerieId);
             setExercises(currentSerieId);
+            saveButton.setVisibility(View.VISIBLE);
         } else {
+            saveButton.setVisibility(View.GONE);
             serieTextView.setText("Não houve treino nesta data.");
+            exercisesLinearLayout.removeAllViews();
         }
     }
 
@@ -203,6 +213,21 @@ public class HistoryFragment extends JsonFragment {
                 repetitionsTextView.setText(exerciseData.getOrDefault("Quantity", "").toString() + " " + exerciseData.getOrDefault("Type", "").toString());
                 exercisesLinearLayout.addView(exerciseCard);
             });
+        }
+    }
+
+    private void saveHistory() {
+        LocalDate today = LocalDate.now();
+        String currentDate = twoDecimalFormatter.format(today.getDayOfMonth()) + "/" + twoDecimalFormatter.format(today.getMonthValue()) + "/" + today.getYear();
+
+        if (currentTrainingDate.equals(currentDate)) {
+            HashMap<String, Object> trainingData = new HashMap<>();
+            trainingData.put("SerieName", currentSerieId);
+
+            trainingHistory.put(currentDate, trainingData);
+
+            saveToInternalStorage(trainingHistory, HISTORY_FILE);
+            Toast.makeText(getContext(), "Treino salvo", Toast.LENGTH_LONG).show();
         }
     }
 
