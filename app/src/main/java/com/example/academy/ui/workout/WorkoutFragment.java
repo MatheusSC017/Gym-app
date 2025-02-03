@@ -1,15 +1,24 @@
 package com.example.academy.ui.workout;
 
 import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.database.Cursor;
 import android.os.Bundle;
 
+import android.text.InputType;
 import android.view.*;
 import android.widget.*;
 
 import com.example.academy.MainActivity;
 import com.example.academy.R;
+import com.example.academy.database.repositories.SerieRepository;
+import com.example.academy.database.repositories.WorkoutRepository;
 import com.example.academy.ui.base.JsonFragment;
+import com.example.academy.utils.Utils;
+import com.example.academy.view.EditTextDate;
 
+import java.text.DecimalFormat;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -17,21 +26,48 @@ import java.util.stream.Collectors;
 public class WorkoutFragment extends JsonFragment {
     private static String WORKOUTS_FILE = "workouts.json";
 
+    WorkoutRepository workoutRepository = null;
+    SerieRepository serieRepository = null;
+
+    DecimalFormat twoDecimalFormatter = new DecimalFormat("00");
+    Comparator<String> comparatorWorkoutDate = new Comparator<String>() {
+        @Override
+        public int compare(String o1, String o2) {
+            String[] parts1 = o1.split("/");
+            String[] parts2 = o2.split("/");
+
+            int year1 = Integer.parseInt(parts1[1]);
+            int month1 = Integer.parseInt(parts1[0]);
+            int year2 = Integer.parseInt(parts2[1]);
+            int month2 = Integer.parseInt(parts2[0]);
+
+            if (year1 != year2) {
+                return Integer.compare(year2, year1);
+            } else {
+                return Integer.compare(month2, month1);
+            }
+        }
+    };
+
+    private LinkedHashMap<String, Long> workoutDates = new LinkedHashMap<>();
+    private LinkedHashMap<String, Long> seriesIds = new LinkedHashMap<>(); // Delete variable
+    private List<String> workoutsIds = new ArrayList<>(); // Delete variable
+    private HashMap<String, Object> workoutsMap; // Delete variable
+
     private LinearLayout workoutLayout;
     private Spinner workoutsSpinner;
     private Spinner exerciseSeriesSpinner;
-
-    private List<String> workoutsIds = new ArrayList<>();
-    private List<String> seriesIds = new ArrayList<>();
     private Button insertButton;
     private Button editButton;
     private Button deleteButton;
-    private HashMap<String, Object> workoutsMap;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_workout, container, false);
+
+        workoutRepository = new WorkoutRepository(getContext());
+        serieRepository = new SerieRepository(getContext());
 
         insertButton = view.findViewById(R.id.insertButton);
         editButton = view.findViewById(R.id.editButton);
@@ -40,17 +76,13 @@ public class WorkoutFragment extends JsonFragment {
         workoutsSpinner = view.findViewById(R.id.personalDateSpinner);
         exerciseSeriesSpinner = view.findViewById(R.id.exerciseSeriesSpinner);
 
-        insertButton.setOnClickListener(event -> {
-            if (getActivity() instanceof MainActivity) {
-                ((MainActivity) getActivity()).loadFragment(new RegisterWorkoutFragment());
-            }
-        });
+        insertButton.setOnClickListener(event -> insertWorkout());
 
         editButton.setOnClickListener(event -> navigateEditWorkout());
 
         deleteButton.setOnClickListener(event -> deleteWorkout());
 
-        workoutsMap = loadJsonData(WORKOUTS_FILE);
+//        workoutsMap = loadJsonData(WORKOUTS_FILE);
         setupWorkoutSpinner();
 
         return view;
@@ -62,25 +94,7 @@ public class WorkoutFragment extends JsonFragment {
             if (workoutsExtractedMap != null) {
                 workoutsIds = workoutsExtractedMap.keySet().stream().collect(Collectors.toList());
 
-                Comparator<String> comparatorWorkoutsIds = new Comparator<String>() {
-                    @Override
-                    public int compare(String o1, String o2) {
-                        String[] parts1 = o1.split("/");
-                        String[] parts2 = o2.split("/");
-
-                        int year1 = Integer.parseInt(parts1[1]);
-                        int month1 = Integer.parseInt(parts1[0]);
-                        int year2 = Integer.parseInt(parts2[1]);
-                        int month2 = Integer.parseInt(parts2[0]);
-
-                        if (year1 != year2) {
-                            return Integer.compare(year2, year1);
-                        } else {
-                            return Integer.compare(month2, month1);
-                        }
-                    }
-                };
-                workoutsIds.sort(comparatorWorkoutsIds);
+                workoutsIds.sort(comparatorWorkoutDate);
             }
             return workoutsExtractedMap;
         } catch (Exception e) {
@@ -92,6 +106,8 @@ public class WorkoutFragment extends JsonFragment {
     public void navigateEditWorkout() {
         String workout = workoutsSpinner.getSelectedItem().toString();
 
+        if (workout == null) return;
+
         Bundle bundle = new Bundle();
         bundle.putString("workout", workout);
 
@@ -101,6 +117,55 @@ public class WorkoutFragment extends JsonFragment {
         if (getActivity() instanceof MainActivity) {
             ((MainActivity) getActivity()).loadFragment(fragment);
         }
+    }
+
+    public void insertWorkout() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder.setTitle("Adicionar Treino");
+
+        LocalDate today = LocalDate.now();
+
+        final EditTextDate workoutEditTextDate = new EditTextDate(getContext());
+        workoutEditTextDate.setText(twoDecimalFormatter.format(today.getMonthValue()) + "/" + today.getYear());
+        workoutEditTextDate.setInputType(InputType.TYPE_CLASS_TEXT);
+        builder.setView(workoutEditTextDate);
+
+        builder.setPositiveButton("Cadastrar", new DialogInterface.OnClickListener() {
+
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                if (workoutEditTextDate.getText().length() != 7) {
+                    Toast.makeText(getContext(), "Insira uma data válida", Toast.LENGTH_LONG).show();
+                    return;
+                }
+                String workoutDate = workoutEditTextDate.getText().toString();
+                long result = workoutRepository.addWorkout(workoutDate);
+                if (result == -1) {
+                    Toast.makeText(getContext(), "Erro: Verifique se um treino nesta data já existe.", Toast.LENGTH_LONG).show();
+                } else {
+                    Bundle bundle = new Bundle();
+                    bundle.putLong("workout_id", result);
+                    bundle.putString("workout_date", workoutDate);
+
+                    RegisterWorkoutFragment fragment = new RegisterWorkoutFragment();
+                    fragment.setArguments(bundle);
+
+                    if (getActivity() instanceof MainActivity) {
+                        ((MainActivity) getActivity()).loadFragment(fragment);
+                    }
+                }
+            }
+        });
+
+        builder.setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
+
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                dialogInterface.cancel();
+            }
+        });
+
+        builder.show();
     }
 
     private void deleteWorkout() {
@@ -124,14 +189,24 @@ public class WorkoutFragment extends JsonFragment {
     }
 
     private void setupWorkoutSpinner() {
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item, workoutsIds);
+        Cursor cursor = workoutRepository.getAllWorkouts();
+        if (cursor.getCount() == 0) return;
+
+        while (cursor.moveToNext()) {
+            workoutDates.put(cursor.getString(1), cursor.getLong(0));
+        }
+
+        List<String> orderedWorkoutDates = workoutDates.keySet().stream().collect(Collectors.toList());
+        orderedWorkoutDates.sort(comparatorWorkoutDate);
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item, orderedWorkoutDates);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         workoutsSpinner.setAdapter(adapter);
 
         workoutsSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                setupSeriesSpinner(workoutsIds.get(position));
+                setupSeriesSpinner(workoutDates.get(workoutsSpinner.getSelectedItem().toString()));
             }
 
             @Override
@@ -141,31 +216,40 @@ public class WorkoutFragment extends JsonFragment {
         });
     }
 
-    private void setupSeriesSpinner(String workoutId) {
+    private void setupSeriesSpinner(Long workoutId) {
+        List<String> seriesNames = new ArrayList<>();
+
         try {
             workoutLayout.removeAllViews();
-            seriesIds.clear();
-            HashMap<String, Object> workout = (HashMap<String, Object>) workoutsMap.get(workoutId);
 
-            if (workout != null) {
-                HashMap<String, Object> series = (HashMap<String, Object>) workout.get("Series");
-                if (series != null) {
-                    seriesIds = series.keySet().stream().collect(Collectors.toList());
-                    Collections.sort(seriesIds);
-                }
+            Cursor cursor = serieRepository.getSeries(workoutId);
+
+            while (cursor.moveToNext()) {
+                seriesIds.put(cursor.getString(1), cursor.getLong(0));
+                seriesNames.add(Utils.getLetter(seriesNames.size()) + "- " + cursor.getString(1));
             }
+//            seriesIds.clear();
+//            HashMap<String, Object> workout = (HashMap<String, Object>) workoutsMap.get(workoutId);
+//
+//            if (workout != null) {
+//                HashMap<String, Object> series = (HashMap<String, Object>) workout.get("Series");
+//                if (series != null) {
+//                    seriesIds = series.keySet().stream().collect(Collectors.toList());
+//                    Collections.sort(seriesIds);
+//                }
+//            }
         } catch (Exception e) {
             Toast.makeText(getContext(), "Error loading Series: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
 
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item, seriesIds);
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item, seriesNames);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         exerciseSeriesSpinner.setAdapter(adapter);
 
         exerciseSeriesSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                setupExercisesCards(workoutId, seriesIds.get(position));
+//                setupExercisesCards(workoutId, seriesIds.get(position));
             }
 
             @Override

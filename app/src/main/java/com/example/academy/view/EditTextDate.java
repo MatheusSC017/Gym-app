@@ -13,8 +13,8 @@ import androidx.appcompat.widget.AppCompatEditText;
 
 public class EditTextDate extends AppCompatEditText {
 
-    public EditTextDate(@NonNull Context context, @Nullable AttributeSet attrs) {
-        super(context, attrs);
+    public EditTextDate(@NonNull Context context) {
+        super(context, null);
 
         addTextChangedListener(new TextWatcher() {
             private int previousTextLength = 0;

@@ -11,17 +11,16 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <com.example.academy.view.EditTextDate
-            android:id="@+id/editTextDate"
+        <TextView
+            android:id="@+id/dateTextView"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginLeft="16dp"
             android:layout_marginTop="16dp"
             android:layout_marginRight="16dp"
-            android:hint="@string/workout_date"
-            android:inputType="number"
-            android:maxLength="7"
-            android:minHeight="48dp"
+            android:text="01/2025"
+            android:textSize="24sp"
+            android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
@@ -35,7 +34,7 @@
             android:layout_marginEnd="8dp"
             app:layout_constraintEnd_toStartOf="@+id/addSerieButton"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/editTextDate" />
+            app:layout_constraintTop_toBottomOf="@+id/dateTextView" />
 
         <Button
             android:id="@+id/addSerieButton"
@@ -139,15 +138,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1" />
-
-            <Button
-                android:id="@+id/saveButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Salvar"
-                app:backgroundTint="@null"
-                app:drawableTint="@null"
-                style="@style/StandardButtonStyle"/>
 
         </LinearLayout>
 
