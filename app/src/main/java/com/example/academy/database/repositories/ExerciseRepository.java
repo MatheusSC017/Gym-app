@@ -17,13 +17,13 @@ public class ExerciseRepository {
 
     public Cursor getExercises(Long serieId) {
         String query = "SELECT * FROM " + ExerciseHelper.TABLE_NAME +
-                " WHERE " + ExerciseHelper.COLUMN_SERIE_ID + " = " + serieId +
+                " WHERE " + ExerciseHelper.COLUMN_SERIE_ID + " = ?" +
                 " ORDER BY " + SerieHelper.COLUMN_ID + " ASC;";
         SQLiteDatabase sqLiteDatabase = databaseManager.getReadableDatabase();
 
         Cursor cursor = null;
         if (sqLiteDatabase != null) {
-            cursor = sqLiteDatabase.rawQuery(query, null);
+            cursor = sqLiteDatabase.rawQuery(query, new String[]{String.valueOf(serieId)});
         }
         return cursor;
     }

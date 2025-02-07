@@ -16,6 +16,7 @@ import com.example.academy.database.repositories.WorkoutRepository;
 import com.example.academy.ui.base.JsonFragment;
 import com.example.academy.utils.Utils;
 import com.example.academy.view.EditTextDate;
+import com.google.gson.internal.TroubleshootingGuide;
 
 import java.text.DecimalFormat;
 import java.time.LocalDate;
@@ -50,7 +51,6 @@ public class WorkoutFragment extends JsonFragment {
     };
 
     private LinkedHashMap<String, Long> workoutDates = new LinkedHashMap<>();
-    private LinkedHashMap<String, Long> seriesIds = new LinkedHashMap<>(); // Delete variable
     private List<String> workoutsIds = new ArrayList<>(); // Delete variable
     private HashMap<String, Object> workoutsMap; // Delete variable
 
@@ -88,6 +88,7 @@ public class WorkoutFragment extends JsonFragment {
         return view;
     }
 
+    // Deprecated
     public HashMap<String, Object> loadJsonData(String filePath) {
         try {
             HashMap<String, Object> workoutsExtractedMap = super.loadJsonData(filePath);
@@ -103,6 +104,7 @@ public class WorkoutFragment extends JsonFragment {
         }
     }
 
+    // Review
     public void navigateEditWorkout() {
         String workout = workoutsSpinner.getSelectedItem().toString();
 
@@ -168,6 +170,7 @@ public class WorkoutFragment extends JsonFragment {
         builder.show();
     }
 
+    // Review
     private void deleteWorkout() {
         String workout = workoutsSpinner.getSelectedItem().toString();
 
@@ -175,12 +178,11 @@ public class WorkoutFragment extends JsonFragment {
             AlertDialog dialog = new AlertDialog.Builder(getContext())
                     .setTitle("Deseja confirmar a exclusão deste treinamento?")
                     .setPositiveButton("Confirmar", ((dialogInterface, i) -> {
-                        workoutsIds.remove(workoutsIds.indexOf(workout));
-                        setupWorkoutSpinner();
-                        HashMap<String, Object> registerData = (HashMap<String, Object>) workoutsMap.get(workout);
-                        registerData.remove("Series");
-                        if (registerData.size() == 0) workoutsMap.remove(workout);;
-                        saveToInternalStorage(workoutsMap, WORKOUTS_FILE);
+                        boolean result = workoutRepository.deleteWorkout(workoutDates.get(workout));
+                        if (!result) {
+                            setupWorkoutSpinner();
+                            Toast.makeText(getContext(), "Erro ao deletar Treinamento", Toast.LENGTH_LONG).show();
+                        }
                     })).setNegativeButton("Cancelar", ((dialogInterface, i) -> {
                         // Do nothing
                     })).create();
@@ -223,21 +225,9 @@ public class WorkoutFragment extends JsonFragment {
             workoutLayout.removeAllViews();
 
             Cursor cursor = serieRepository.getSeries(workoutId);
-
             while (cursor.moveToNext()) {
-                seriesIds.put(cursor.getString(1), cursor.getLong(0));
                 seriesNames.add(Utils.getLetter(seriesNames.size()) + "- " + cursor.getString(1));
             }
-//            seriesIds.clear();
-//            HashMap<String, Object> workout = (HashMap<String, Object>) workoutsMap.get(workoutId);
-//
-//            if (workout != null) {
-//                HashMap<String, Object> series = (HashMap<String, Object>) workout.get("Series");
-//                if (series != null) {
-//                    seriesIds = series.keySet().stream().collect(Collectors.toList());
-//                    Collections.sort(seriesIds);
-//                }
-//            }
         } catch (Exception e) {
             Toast.makeText(getContext(), "Error loading Series: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
@@ -259,6 +249,7 @@ public class WorkoutFragment extends JsonFragment {
         });
     }
 
+    // Review
     private void setupExercisesCards(String workoutId, String serieId) {
         HashMap<String, Object> workout = (HashMap<String, Object>) workoutsMap.get(workoutId);
         if (workout == null) return;
@@ -305,6 +296,7 @@ public class WorkoutFragment extends JsonFragment {
         }
     }
 
+    // Review
     private void setupExerciseCard(String exercise, HashMap<String, Object> exerciseData, LinearLayout layout) {
         View exerciseCard = LayoutInflater.from(getContext()).inflate(R.layout.exercise_layout, layout, false);
 

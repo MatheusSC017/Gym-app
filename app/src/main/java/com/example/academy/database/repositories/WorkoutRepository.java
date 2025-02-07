@@ -26,6 +26,14 @@ public class WorkoutRepository {
         return result;
     }
 
+    public boolean deleteWorkout(Long id) {
+        SQLiteDatabase sqLiteDatabase = databaseManager.getWritableDatabase();
+        if (sqLiteDatabase == null) return false;
+
+        int result = sqLiteDatabase.delete(WorkoutHelper.TABLE_NAME, WorkoutHelper.COLUMN_ID + "=?", new String[]{String.valueOf(id)});
+        return result > 0;
+    }
+
     public Cursor getAllWorkouts() {
         String query = "SELECT * FROM " + WorkoutHelper.TABLE_NAME;
         SQLiteDatabase sqLiteDatabase = databaseManager.getReadableDatabase();

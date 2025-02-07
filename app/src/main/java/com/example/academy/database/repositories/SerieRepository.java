@@ -29,19 +29,19 @@ public class SerieRepository {
     public boolean removeSerie(Long serieId) {
         SQLiteDatabase sqLiteDatabase = databaseManager.getWritableDatabase();
 
-        int result = sqLiteDatabase.delete(SerieHelper.TABLE_NAME, SerieHelper.COLUMN_ID + "=" + serieId, null);
+        int result = sqLiteDatabase.delete(SerieHelper.TABLE_NAME, SerieHelper.COLUMN_ID + "=?", new String[]{String.valueOf(serieId)});
         return result > 0;
     }
 
     public Cursor getSeries(Long workoutId) {
         String query = "SELECT * FROM " + SerieHelper.TABLE_NAME +
-                " WHERE " + SerieHelper.COLUMN_WORKOUT_ID + " = " + workoutId +
+                " WHERE " + SerieHelper.COLUMN_WORKOUT_ID + " = ?" +
                 " ORDER BY " + SerieHelper.COLUMN_ID + " ASC;";
         SQLiteDatabase sqLiteDatabase = databaseManager.getReadableDatabase();
 
         Cursor cursor = null;
         if (sqLiteDatabase != null) {
-            cursor = sqLiteDatabase.rawQuery(query, null);
+            cursor = sqLiteDatabase.rawQuery(query, new String[]{String.valueOf(workoutId)});
         }
         return cursor;
     }

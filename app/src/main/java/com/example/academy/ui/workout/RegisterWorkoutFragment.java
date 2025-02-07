@@ -65,15 +65,9 @@ public class RegisterWorkoutFragment extends JsonFragment {
         addExerciseButton = view.findViewById(R.id.addExerciseButton);
 
         returnButton.setOnClickListener(event -> {
-            AlertDialog dialog = new AlertDialog.Builder(getContext())
-                    .setTitle("Caso opte por retornar as informações serão perdidas")
-                    .setNegativeButton("Cancelar", null)
-                    .setPositiveButton("Confirmar", (((dialogInterface, i) -> {
-                        if (getActivity() instanceof MainActivity) {
-                            ((MainActivity) getActivity()).loadFragment(new WorkoutFragment());
-                        }
-                    }))).create();
-            dialog.show();
+            if (getActivity() instanceof MainActivity) {
+                ((MainActivity) getActivity()).loadFragment(new WorkoutFragment());
+            }
         });
         addSerieButton.setOnClickListener(event -> showSerieRegisterDialog());
         removeSerieButton.setOnClickListener(event -> removeSerie());
