@@ -11,6 +11,8 @@ import android.widget.*;
 
 import com.example.academy.MainActivity;
 import com.example.academy.R;
+import com.example.academy.database.SerieHelper;
+import com.example.academy.database.WorkoutHelper;
 import com.example.academy.database.repositories.SerieRepository;
 import com.example.academy.database.repositories.WorkoutRepository;
 import com.example.academy.ui.base.JsonFragment;
@@ -170,17 +172,16 @@ public class WorkoutFragment extends JsonFragment {
         builder.show();
     }
 
-    // Review
     private void deleteWorkout() {
-        String workout = workoutsSpinner.getSelectedItem().toString();
+        Object workout = workoutsSpinner.getSelectedItem();
 
-        if (!workout.equals("")) {
+        if (workout != null) {
             AlertDialog dialog = new AlertDialog.Builder(getContext())
                     .setTitle("Deseja confirmar a exclusão deste treinamento?")
                     .setPositiveButton("Confirmar", ((dialogInterface, i) -> {
-                        boolean result = workoutRepository.deleteWorkout(workoutDates.get(workout));
+                        boolean result = workoutRepository.deleteWorkout(workoutDates.get(workout.toString()));
+                        setupWorkoutSpinner();
                         if (!result) {
-                            setupWorkoutSpinner();
                             Toast.makeText(getContext(), "Erro ao deletar Treinamento", Toast.LENGTH_LONG).show();
                         }
                     })).setNegativeButton("Cancelar", ((dialogInterface, i) -> {
@@ -191,11 +192,11 @@ public class WorkoutFragment extends JsonFragment {
     }
 
     private void setupWorkoutSpinner() {
-        Cursor cursor = workoutRepository.getAllWorkouts();
-        if (cursor.getCount() == 0) return;
+        List<HashMap<String, Object>> workoutsList = workoutRepository.getAllWorkouts();
 
-        while (cursor.moveToNext()) {
-            workoutDates.put(cursor.getString(1), cursor.getLong(0));
+        workoutDates.clear();
+        for (HashMap<String, Object> workout: workoutsList) {
+            workoutDates.put((String) workout.get(WorkoutHelper.COLUMN_DATE), (Long) workout.get(WorkoutHelper.COLUMN_ID));
         }
 
         List<String> orderedWorkoutDates = workoutDates.keySet().stream().collect(Collectors.toList());
@@ -224,9 +225,9 @@ public class WorkoutFragment extends JsonFragment {
         try {
             workoutLayout.removeAllViews();
 
-            Cursor cursor = serieRepository.getSeries(workoutId);
-            while (cursor.moveToNext()) {
-                seriesNames.add(Utils.getLetter(seriesNames.size()) + "- " + cursor.getString(1));
+            List<HashMap<String, Object>> seriesList = serieRepository.getSeries(workoutId);
+            for (HashMap<String, Object> serie: seriesList) {
+                seriesNames.add(Utils.getLetter(seriesNames.size()) + "- " + serie.get(SerieHelper.COLUMN_NAME));
             }
         } catch (Exception e) {
             Toast.makeText(getContext(), "Error loading Series: " + e.getMessage(), Toast.LENGTH_LONG).show();

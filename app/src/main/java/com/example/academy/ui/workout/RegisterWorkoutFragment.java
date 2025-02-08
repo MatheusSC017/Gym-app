@@ -3,6 +3,7 @@ package com.example.academy.ui.workout;
 import com.example.academy.MainActivity;
 import com.example.academy.R;
 import com.example.academy.database.ExerciseHelper;
+import com.example.academy.database.SerieHelper;
 import com.example.academy.database.repositories.ExerciseRepository;
 import com.example.academy.database.repositories.SerieRepository;
 import com.example.academy.ui.base.JsonFragment;
@@ -91,11 +92,10 @@ public class RegisterWorkoutFragment extends JsonFragment {
     }
 
     private void loadSeries() {
-        Cursor cursor = serieRepository.getSeries(workout_id);
-        if (cursor.getCount() == 0) return;
+        List<HashMap<String, Object>> seriesList = serieRepository.getSeries(workout_id);
 
-        while (cursor.moveToNext()) {
-            seriesIds.put(cursor.getLong(0), cursor.getString(1));
+        for (HashMap<String, Object> serie: seriesList) {
+            seriesIds.put((Long) serie.get(SerieHelper.COLUMN_ID), (String) serie.get(SerieHelper.COLUMN_NAME));
         }
     }
 
