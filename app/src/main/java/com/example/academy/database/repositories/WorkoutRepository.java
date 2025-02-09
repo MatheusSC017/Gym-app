@@ -10,7 +10,6 @@ import com.example.academy.database.WorkoutHelper;
 import com.example.academy.models.WorkoutModel;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 public class WorkoutRepository {
@@ -20,7 +19,7 @@ public class WorkoutRepository {
         databaseManager = new DatabaseManager(context);
     }
 
-    public long addWorkout(String date) {
+    public long add(String date) {
         SQLiteDatabase sqLiteDatabase = databaseManager.getWritableDatabase();
         if (sqLiteDatabase == null) return -1;
 
@@ -32,7 +31,7 @@ public class WorkoutRepository {
         return result;
     }
 
-    public boolean deleteWorkout(Long id) {
+    public boolean delete(Long id) {
         SQLiteDatabase sqLiteDatabase = databaseManager.getWritableDatabase();
         if (sqLiteDatabase == null) return false;
 
@@ -41,7 +40,7 @@ public class WorkoutRepository {
         return result > 0;
     }
 
-    public List<WorkoutModel> getAllWorkouts() {
+    public List<WorkoutModel> getAll() {
         String query = "SELECT * FROM " + WorkoutHelper.TABLE_NAME;
         SQLiteDatabase sqLiteDatabase = databaseManager.getReadableDatabase();
 

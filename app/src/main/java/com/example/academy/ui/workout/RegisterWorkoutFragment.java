@@ -2,8 +2,6 @@ package com.example.academy.ui.workout;
 
 import com.example.academy.MainActivity;
 import com.example.academy.R;
-import com.example.academy.database.ExerciseHelper;
-import com.example.academy.database.SerieHelper;
 import com.example.academy.database.repositories.ExerciseRepository;
 import com.example.academy.database.repositories.SerieRepository;
 import com.example.academy.models.ExerciseModel;
@@ -14,7 +12,6 @@ import com.example.academy.utils.Utils;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.database.Cursor;
 import android.os.Bundle;
 
 import android.text.InputType;
@@ -94,7 +91,7 @@ public class RegisterWorkoutFragment extends JsonFragment {
     }
 
     private void loadSeries() {
-        List<SerieModel> seriesList = serieRepository.getSeries(workout_id);
+        List<SerieModel> seriesList = serieRepository.getAll(workout_id);
 
         for (SerieModel serie: seriesList) {
             seriesIds.put(serie.getId(), serie.getName());
@@ -155,7 +152,7 @@ public class RegisterWorkoutFragment extends JsonFragment {
     }
 
     private void addNewSerie(String serieName) {
-        Long result = serieRepository.addSerie(serieName, workout_id);
+        Long result = serieRepository.add(serieName, workout_id);
 
         if (result != -1) {
             seriesIds.put(result, serieName);
@@ -168,7 +165,7 @@ public class RegisterWorkoutFragment extends JsonFragment {
 
         if (position != -1) {
             long serieId = seriesIds.keySet().stream().collect(Collectors.toList()).get(position);
-            boolean result = serieRepository.removeSerie(serieId);
+            boolean result = serieRepository.remove(serieId);
             if (result) {
                 seriesIds.remove(serieId);
                 setSeriesSpinner();
@@ -192,7 +189,7 @@ public class RegisterWorkoutFragment extends JsonFragment {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
                 Long serieId = seriesIds.keySet().stream().collect(Collectors.toList()).get(position);
-                List<ExerciseModel> exercisesList = exerciseRepository.getExercises(serieId);
+                List<ExerciseModel> exercisesList = exerciseRepository.getAll(serieId);
 
                 exerciseLinearLayout.removeAllViews();
                 for (ExerciseModel exercise:exercisesList) {
@@ -257,12 +254,15 @@ public class RegisterWorkoutFragment extends JsonFragment {
                 typeSpinner.getSelectedItem().toString(), Integer.valueOf(quantityEditText.getText().toString()),
                 muscleEditText.getText().toString(), 0, observationEditText.getText().toString(), serieId);
 
-        exercise = exerciseRepository.addExercise(exercise);
+        exercise = exerciseRepository.add(exercise);
 
-        if (exercise == null)
+        if (exercise == null) {
             Toast.makeText(getContext(), "Erro ao adicionar exercício", Toast.LENGTH_LONG).show();
-        else
-            setupExerciseCard(exerciseLinearLayout, exercise);
+            return;
+        }
+
+        exercises.put(exercise.getId(), exercise);
+        setupExerciseCard(exerciseLinearLayout, exercise);
     }
 
     private void setupExerciseCard(LinearLayout layout, ExerciseModel  exercise) {
@@ -278,8 +278,8 @@ public class RegisterWorkoutFragment extends JsonFragment {
         Button editExerciseButton = exerciseCard.findViewById(R.id.editExerciseButton);
         Button removeExerciseButton = exerciseCard.findViewById(R.id.removeExerciseButton);
 
-        editExerciseButton.setOnClickListener(event -> showEditExerciseDialog(exerciseTextView.getText().toString()));
-        removeExerciseButton.setOnClickListener(event -> removeExercise(exerciseTextView.getText().toString()));
+        editExerciseButton.setOnClickListener(event -> showEditExerciseDialog(exercise.getId()));
+        removeExerciseButton.setOnClickListener(event -> removeExercise(exercise.getId()));
 
         exerciseTextView.setText(exercise.getName());
         muscleTextView.setText(exercise.getMuscle());
@@ -290,29 +290,29 @@ public class RegisterWorkoutFragment extends JsonFragment {
     }
 
     // Review
-    private void showEditExerciseDialog(String exercise) {
-        HashMap<String, String> exerciseData = exercisesSerie.get(exercise);
+    private void showEditExerciseDialog(Long exercise) {
+        ExerciseModel exerciseModel = exercises.get(exercise);
 
 
-        if (exerciseData != null) {
+        if (exerciseModel != null) {
             LayoutInflater layoutInflater = LayoutInflater.from(getContext());
             View dialogView = layoutInflater.inflate(R.layout.dialog_exercise_register, null);
 
             EditText exerciseEditText = dialogView.findViewById(R.id.exerciseEditText);
-            exerciseEditText.setText(exercise);
+            exerciseEditText.setText(exerciseModel.getName());
             EditText seriesEditText = dialogView.findViewById(R.id.seriesEditText);
-            if (exerciseData.containsKey("Series")) seriesEditText.setText(String.valueOf(exerciseData.get("Series")));
+            seriesEditText.setText(String.valueOf(exerciseModel.getSeriesNumber()));
             Spinner typeSpinner = dialogView.findViewById(R.id.typeSpinner);
             ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item, TYPES_OF_MEASURES);
             adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             typeSpinner.setAdapter(adapter);
-            typeSpinner.setSelection(TYPES_OF_MEASURES.indexOf(exerciseData.get("Type")));
+            typeSpinner.setSelection(TYPES_OF_MEASURES.indexOf(exerciseModel.getMeasure()));
             EditText quantityEditText = dialogView.findViewById(R.id.quantityEditText);
-            if (exerciseData.containsKey("Quantity")) quantityEditText.setText(String.valueOf(exerciseData.get("Quantity")));
+            quantityEditText.setText(String.valueOf(exerciseModel.getQuantity()));
             EditText muscleEditText = dialogView.findViewById(R.id.muscleEditText);
-            if (exerciseData.containsKey("Muscle")) muscleEditText.setText(exerciseData.get("Muscle"));
+            muscleEditText.setText(exerciseModel.getMuscle());
             EditText observationEditText = dialogView.findViewById(R.id.observationEditText);
-            if (exerciseData.containsKey("Observation")) observationEditText.setText(exerciseData.get("Observation"));
+            observationEditText.setText(exerciseModel.getObservation());
 
             Button cancelButton = dialogView.findViewById(R.id.cancelButton);
             Button saveButton = dialogView.findViewById(R.id.submitButton);
@@ -321,36 +321,33 @@ public class RegisterWorkoutFragment extends JsonFragment {
 
             cancelButton.setOnClickListener(event -> dialog.dismiss());
             saveButton.setOnClickListener(event -> {
-                exerciseData.put("Series", seriesEditText.getText().toString());
-                exerciseData.put("Type", typeSpinner.getSelectedItem().toString());
-                exerciseData.put("Quantity", quantityEditText.getText().toString());
-                exerciseData.put("Muscle", muscleEditText.getText().toString());
-                exerciseData.put("Observation", observationEditText.getText().toString());
+                String oldExerciseName = exerciseModel.getName();
 
-                if (!exerciseEditText.getText().toString().equals(exercise)) {
-                    exercisesSerie.remove(exercise);
-                    exercisesSerie.put(exerciseEditText.getText().toString(), exerciseData);
-                    for (List<String> sequenceGroup: sequenceGroups) {
-                        if (sequenceGroup.contains(exercise)) {
-                            sequenceGroup.remove(sequenceGroup.indexOf(exercise));
-                            sequenceGroup.add(exerciseEditText.getText().toString());
+                exerciseModel.setName(exerciseEditText.getText().toString());
+                exerciseModel.setSeriesNumber(Integer.valueOf(seriesEditText.getText().toString()));
+                exerciseModel.setMeasure(typeSpinner.getSelectedItem().toString());
+                exerciseModel.setQuantity(Integer.valueOf(quantityEditText.getText().toString()));
+                exerciseModel.setMuscle(muscleEditText.getText().toString());
+                exerciseModel.setObservation(observationEditText.getText().toString());
+
+                boolean result = exerciseRepository.update(exerciseModel.getId(), exerciseModel);
+
+                if (result) {
+                    for (int i = 0; i <= exerciseLinearLayout.getChildCount(); i++) {
+                        View exerciseCard = exerciseLinearLayout.getChildAt(i);
+                        TextView exerciseTextView = exerciseCard.findViewById(R.id.exerciseTextView);
+                        if (exerciseTextView != null && exerciseTextView.getText().toString().equals(oldExerciseName)) {
+                            TextView seriesTextView = exerciseCard.findViewById(R.id.seriesTextView);
+                            TextView repetitionsTextView = exerciseCard.findViewById(R.id.repetitionsTextView);
+                            TextView muscleTextView = exerciseCard.findViewById(R.id.muscleTextView);
+
+                            exerciseTextView.setText(exerciseModel.getName());
+                            muscleTextView.setText(exerciseModel.getMuscle());
+                            seriesTextView.setText(exerciseModel.getSeriesNumber() + " x");
+                            repetitionsTextView.setText(exerciseModel.getQuantity() + " " + exerciseModel.getMeasure());
+
+                            break;
                         }
-                    }
-                }
-
-                for (int i = 0; i <= exerciseLinearLayout.getChildCount(); i++) {
-                    View exerciseCard = exerciseLinearLayout.getChildAt(i);
-                    TextView exerciseTextView = exerciseCard.findViewById(R.id.exerciseTextView);
-                    if (exerciseTextView != null && exerciseTextView.getText().toString().equals(exercise)) {
-                        TextView seriesTextView = exerciseCard.findViewById(R.id.seriesTextView);
-                        TextView repetitionsTextView = exerciseCard.findViewById(R.id.repetitionsTextView);
-
-                        exerciseTextView.setText(exerciseEditText.getText().toString());
-                        String series = exerciseData.getOrDefault("Series", "1").toString();
-                        if (!series.equals("1")) seriesTextView.setText(series + " x");
-                        repetitionsTextView.setText(exerciseData.getOrDefault("Quantity", "").toString() + " " + exerciseData.getOrDefault("Type", "").toString());
-
-                        break;
                     }
                 }
 
@@ -361,16 +358,24 @@ public class RegisterWorkoutFragment extends JsonFragment {
         }
     }
 
-    // Review
-    private void removeExercise(String exercise) {
-        exercisesSerie.remove(exercise);
+    private void removeExercise(Long exercise) {
+        boolean result = exerciseRepository.delete(exercise);
+        if (!result) {
+            Toast.makeText(getContext(), "Erro excluindo exercício", Toast.LENGTH_LONG).show();
+            return;
+        }
 
-        for (int i = 0; i <= exerciseLinearLayout.getChildCount(); i++) {
-            View exerciseCard = exerciseLinearLayout.getChildAt(i);
-            TextView exerciseTextView = exerciseCard.findViewById(R.id.exerciseTextView);
-            if (exerciseTextView.getText().toString().equals(exercise)) {
-                exerciseLinearLayout.removeView(exerciseCard);
-                break;
+        ExerciseModel exerciseModel = exercises.get(exercise);
+        if (exerciseModel != null) {
+            exercises.remove(exercise);
+
+            for (int i = 0; i <= exerciseLinearLayout.getChildCount(); i++) {
+                View exerciseCard = exerciseLinearLayout.getChildAt(i);
+                TextView exerciseTextView = exerciseCard.findViewById(R.id.exerciseTextView);
+                if (exerciseTextView.getText().toString().equals(exerciseModel.getName())) {
+                    exerciseLinearLayout.removeView(exerciseCard);
+                    break;
+                }
             }
         }
 

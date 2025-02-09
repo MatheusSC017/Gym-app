@@ -7,11 +7,9 @@ import android.database.sqlite.SQLiteDatabase;
 
 import com.example.academy.database.DatabaseManager;
 import com.example.academy.database.SerieHelper;
-import com.example.academy.database.WorkoutHelper;
 import com.example.academy.models.SerieModel;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 public class SerieRepository {
@@ -21,7 +19,7 @@ public class SerieRepository {
         databaseManager = new DatabaseManager(context);
     }
 
-    public Long addSerie(String name, Long workout_id) {
+    public Long add(String name, Long workout_id) {
         SQLiteDatabase sqLiteDatabase = databaseManager.getWritableDatabase();
         ContentValues contentValues = new ContentValues();
 
@@ -33,7 +31,7 @@ public class SerieRepository {
         return result;
     }
 
-    public boolean removeSerie(Long serieId) {
+    public boolean remove(Long serieId) {
         SQLiteDatabase sqLiteDatabase = databaseManager.getWritableDatabase();
 
         int result = sqLiteDatabase.delete(SerieHelper.TABLE_NAME, SerieHelper.COLUMN_ID + "=?", new String[]{String.valueOf(serieId)});
@@ -41,7 +39,7 @@ public class SerieRepository {
         return result > 0;
     }
 
-    public List<SerieModel> getSeries(Long workoutId) {
+    public List<SerieModel> getAll(Long workoutId) {
         String query = "SELECT * FROM " + SerieHelper.TABLE_NAME +
                 " WHERE " + SerieHelper.COLUMN_WORKOUT_ID + " = ?" +
                 " ORDER BY " + SerieHelper.COLUMN_ID + " ASC;";

@@ -10,8 +10,6 @@ import android.widget.*;
 
 import com.example.academy.MainActivity;
 import com.example.academy.R;
-import com.example.academy.database.SerieHelper;
-import com.example.academy.database.WorkoutHelper;
 import com.example.academy.database.repositories.ExerciseRepository;
 import com.example.academy.database.repositories.SerieRepository;
 import com.example.academy.database.repositories.WorkoutRepository;
@@ -55,7 +53,6 @@ public class WorkoutFragment extends JsonFragment {
 
     private LinkedHashMap<String, Long> workoutDates = new LinkedHashMap<>();
     private LinkedHashMap<String, Long> seriesMap = new LinkedHashMap<>();
-    private HashMap<String, Object> workoutsMap; // Delete variable
 
     private LinearLayout workoutLayout;
     private Spinner workoutsSpinner;
@@ -91,14 +88,14 @@ public class WorkoutFragment extends JsonFragment {
         return view;
     }
 
-    // Review
     public void navigateEditWorkout() {
         String workout = workoutsSpinner.getSelectedItem().toString();
 
-        if (workout == null) return;
+        if (workout == null && workoutDates.containsKey(workout)) return;
 
         Bundle bundle = new Bundle();
-        bundle.putString("workout", workout);
+        bundle.putLong("workout_id", workoutDates.get(workout));
+        bundle.putString("workout_date", workout);
 
         RegisterWorkoutFragment fragment = new RegisterWorkoutFragment();
         fragment.setArguments(bundle);
@@ -128,7 +125,7 @@ public class WorkoutFragment extends JsonFragment {
                     return;
                 }
                 String workoutDate = workoutEditTextDate.getText().toString();
-                long result = workoutRepository.addWorkout(workoutDate);
+                long result = workoutRepository.add(workoutDate);
                 if (result == -1) {
                     Toast.makeText(getContext(), "Erro: Verifique se um treino nesta data já existe.", Toast.LENGTH_LONG).show();
                 } else {
@@ -164,7 +161,7 @@ public class WorkoutFragment extends JsonFragment {
             AlertDialog dialog = new AlertDialog.Builder(getContext())
                     .setTitle("Deseja confirmar a exclusão deste treinamento?")
                     .setPositiveButton("Confirmar", ((dialogInterface, i) -> {
-                        boolean result = workoutRepository.deleteWorkout(workoutDates.get(workout.toString()));
+                        boolean result = workoutRepository.delete(workoutDates.get(workout.toString()));
                         setupWorkoutSpinner();
                         if (!result) {
                             Toast.makeText(getContext(), "Erro ao deletar Treinamento", Toast.LENGTH_LONG).show();
@@ -177,7 +174,7 @@ public class WorkoutFragment extends JsonFragment {
     }
 
     private void setupWorkoutSpinner() {
-        List<WorkoutModel> workoutsList = workoutRepository.getAllWorkouts();
+        List<WorkoutModel> workoutsList = workoutRepository.getAll();
 
         workoutDates.clear();
         for (WorkoutModel workout: workoutsList) {
@@ -211,7 +208,7 @@ public class WorkoutFragment extends JsonFragment {
             workoutLayout.removeAllViews();
             seriesMap.clear();
 
-            List<SerieModel> seriesList = serieRepository.getSeries(workoutId);
+            List<SerieModel> seriesList = serieRepository.getAll(workoutId);
             for (SerieModel serie: seriesList) {
                 String serieName = Utils.getLetter(seriesNames.size()) + "- " + serie.getName();
                 seriesNames.add(serieName);
@@ -239,7 +236,7 @@ public class WorkoutFragment extends JsonFragment {
     }
 
     private void setupExercisesCards(Long serieId) {
-        List<ExerciseModel> exercisesList = exerciseRepository.getExercises(serieId);
+        List<ExerciseModel> exercisesList = exerciseRepository.getAll(serieId);
 
         workoutLayout.removeAllViews();
         for (ExerciseModel exercise:exercisesList) {
