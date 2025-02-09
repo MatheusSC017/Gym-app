@@ -8,6 +8,7 @@ import android.database.sqlite.SQLiteDatabase;
 import com.example.academy.database.DatabaseManager;
 import com.example.academy.database.SerieHelper;
 import com.example.academy.database.WorkoutHelper;
+import com.example.academy.models.SerieModel;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -40,22 +41,20 @@ public class SerieRepository {
         return result > 0;
     }
 
-    public List<HashMap<String, Object>> getSeries(Long workoutId) {
+    public List<SerieModel> getSeries(Long workoutId) {
         String query = "SELECT * FROM " + SerieHelper.TABLE_NAME +
                 " WHERE " + SerieHelper.COLUMN_WORKOUT_ID + " = ?" +
                 " ORDER BY " + SerieHelper.COLUMN_ID + " ASC;";
         SQLiteDatabase sqLiteDatabase = databaseManager.getReadableDatabase();
 
-        List<HashMap<String, Object>> seriesList = new ArrayList<>();
+        List<SerieModel> seriesList = new ArrayList<>();
 
         if (sqLiteDatabase != null) {
             Cursor cursor = sqLiteDatabase.rawQuery(query, new String[]{String.valueOf(workoutId)});
 
             if (cursor.moveToFirst()) {
                 do {
-                    HashMap<String, Object> serieMap = new HashMap<>();
-                    serieMap.put(SerieHelper.COLUMN_ID, cursor.getLong(0));
-                    serieMap.put(SerieHelper.COLUMN_NAME, cursor.getString(1));
+                    SerieModel serieMap = new SerieModel(cursor.getLong(0), cursor.getString(1), cursor.getLong(2));
                     seriesList.add(serieMap);
                 } while (cursor.moveToNext());
             }

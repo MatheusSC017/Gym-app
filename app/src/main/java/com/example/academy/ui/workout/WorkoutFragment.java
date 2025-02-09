@@ -16,6 +16,8 @@ import com.example.academy.database.repositories.ExerciseRepository;
 import com.example.academy.database.repositories.SerieRepository;
 import com.example.academy.database.repositories.WorkoutRepository;
 import com.example.academy.models.ExerciseModel;
+import com.example.academy.models.SerieModel;
+import com.example.academy.models.WorkoutModel;
 import com.example.academy.ui.base.JsonFragment;
 import com.example.academy.utils.Utils;
 import com.example.academy.view.EditTextDate;
@@ -175,11 +177,11 @@ public class WorkoutFragment extends JsonFragment {
     }
 
     private void setupWorkoutSpinner() {
-        List<HashMap<String, Object>> workoutsList = workoutRepository.getAllWorkouts();
+        List<WorkoutModel> workoutsList = workoutRepository.getAllWorkouts();
 
         workoutDates.clear();
-        for (HashMap<String, Object> workout: workoutsList) {
-            workoutDates.put((String) workout.get(WorkoutHelper.COLUMN_DATE), (Long) workout.get(WorkoutHelper.COLUMN_ID));
+        for (WorkoutModel workout: workoutsList) {
+            workoutDates.put(workout.getDate(), workout.getId());
         }
 
         List<String> orderedWorkoutDates = workoutDates.keySet().stream().collect(Collectors.toList());
@@ -209,11 +211,11 @@ public class WorkoutFragment extends JsonFragment {
             workoutLayout.removeAllViews();
             seriesMap.clear();
 
-            List<HashMap<String, Object>> seriesList = serieRepository.getSeries(workoutId);
-            for (HashMap<String, Object> serie: seriesList) {
-                String serieName = Utils.getLetter(seriesNames.size()) + "- " + serie.get(SerieHelper.COLUMN_NAME);
+            List<SerieModel> seriesList = serieRepository.getSeries(workoutId);
+            for (SerieModel serie: seriesList) {
+                String serieName = Utils.getLetter(seriesNames.size()) + "- " + serie.getName();
                 seriesNames.add(serieName);
-                seriesMap.put(serieName, (Long) serie.get(SerieHelper.COLUMN_ID));
+                seriesMap.put(serieName, serie.getId());
             }
         } catch (Exception e) {
             Toast.makeText(getContext(), "Error loading Series: " + e.getMessage(), Toast.LENGTH_LONG).show();

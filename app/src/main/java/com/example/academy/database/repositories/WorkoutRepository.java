@@ -7,6 +7,7 @@ import android.database.sqlite.SQLiteDatabase;
 
 import com.example.academy.database.DatabaseManager;
 import com.example.academy.database.WorkoutHelper;
+import com.example.academy.models.WorkoutModel;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -40,20 +41,18 @@ public class WorkoutRepository {
         return result > 0;
     }
 
-    public List<HashMap<String, Object>> getAllWorkouts() {
+    public List<WorkoutModel> getAllWorkouts() {
         String query = "SELECT * FROM " + WorkoutHelper.TABLE_NAME;
         SQLiteDatabase sqLiteDatabase = databaseManager.getReadableDatabase();
 
-        List<HashMap<String, Object>> workoutsList = new ArrayList<>();
+        List<WorkoutModel> workoutsList = new ArrayList<>();
 
         if (sqLiteDatabase != null) {
             Cursor cursor = sqLiteDatabase.rawQuery(query, null);
 
             if (cursor.moveToFirst()) {
                 do {
-                    HashMap<String, Object> workoutMap = new HashMap<>();
-                    workoutMap.put(WorkoutHelper.COLUMN_ID, cursor.getLong(0));
-                    workoutMap.put(WorkoutHelper.COLUMN_DATE, cursor.getString(1));
+                    WorkoutModel workoutMap = new WorkoutModel(cursor.getLong(0), cursor.getString(1));
                     workoutsList.add(workoutMap);
                 } while (cursor.moveToNext());
             }

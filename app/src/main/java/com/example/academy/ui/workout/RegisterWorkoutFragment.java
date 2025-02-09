@@ -7,6 +7,7 @@ import com.example.academy.database.SerieHelper;
 import com.example.academy.database.repositories.ExerciseRepository;
 import com.example.academy.database.repositories.SerieRepository;
 import com.example.academy.models.ExerciseModel;
+import com.example.academy.models.SerieModel;
 import com.example.academy.ui.base.JsonFragment;
 import com.example.academy.utils.Utils;
 
@@ -93,10 +94,10 @@ public class RegisterWorkoutFragment extends JsonFragment {
     }
 
     private void loadSeries() {
-        List<HashMap<String, Object>> seriesList = serieRepository.getSeries(workout_id);
+        List<SerieModel> seriesList = serieRepository.getSeries(workout_id);
 
-        for (HashMap<String, Object> serie: seriesList) {
-            seriesIds.put((Long) serie.get(SerieHelper.COLUMN_ID), (String) serie.get(SerieHelper.COLUMN_NAME));
+        for (SerieModel serie: seriesList) {
+            seriesIds.put(serie.getId(), serie.getName());
         }
     }
 
