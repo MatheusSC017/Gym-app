@@ -2,7 +2,6 @@ package com.example.academy.ui.workout;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
-import android.database.Cursor;
 import android.os.Bundle;
 
 import android.text.InputType;
@@ -13,12 +12,13 @@ import com.example.academy.MainActivity;
 import com.example.academy.R;
 import com.example.academy.database.SerieHelper;
 import com.example.academy.database.WorkoutHelper;
+import com.example.academy.database.repositories.ExerciseRepository;
 import com.example.academy.database.repositories.SerieRepository;
 import com.example.academy.database.repositories.WorkoutRepository;
+import com.example.academy.models.ExerciseModel;
 import com.example.academy.ui.base.JsonFragment;
 import com.example.academy.utils.Utils;
 import com.example.academy.view.EditTextDate;
-import com.google.gson.internal.TroubleshootingGuide;
 
 import java.text.DecimalFormat;
 import java.time.LocalDate;
@@ -27,10 +27,9 @@ import java.util.stream.Collectors;
 
 
 public class WorkoutFragment extends JsonFragment {
-    private static String WORKOUTS_FILE = "workouts.json";
-
     WorkoutRepository workoutRepository = null;
     SerieRepository serieRepository = null;
+    ExerciseRepository exerciseRepository = null;
 
     DecimalFormat twoDecimalFormatter = new DecimalFormat("00");
     Comparator<String> comparatorWorkoutDate = new Comparator<String>() {
@@ -53,7 +52,7 @@ public class WorkoutFragment extends JsonFragment {
     };
 
     private LinkedHashMap<String, Long> workoutDates = new LinkedHashMap<>();
-    private List<String> workoutsIds = new ArrayList<>(); // Delete variable
+    private LinkedHashMap<String, Long> seriesMap = new LinkedHashMap<>();
     private HashMap<String, Object> workoutsMap; // Delete variable
 
     private LinearLayout workoutLayout;
@@ -70,6 +69,7 @@ public class WorkoutFragment extends JsonFragment {
 
         workoutRepository = new WorkoutRepository(getContext());
         serieRepository = new SerieRepository(getContext());
+        exerciseRepository = new ExerciseRepository(getContext());
 
         insertButton = view.findViewById(R.id.insertButton);
         editButton = view.findViewById(R.id.editButton);
@@ -84,26 +84,9 @@ public class WorkoutFragment extends JsonFragment {
 
         deleteButton.setOnClickListener(event -> deleteWorkout());
 
-//        workoutsMap = loadJsonData(WORKOUTS_FILE);
         setupWorkoutSpinner();
 
         return view;
-    }
-
-    // Deprecated
-    public HashMap<String, Object> loadJsonData(String filePath) {
-        try {
-            HashMap<String, Object> workoutsExtractedMap = super.loadJsonData(filePath);
-            if (workoutsExtractedMap != null) {
-                workoutsIds = workoutsExtractedMap.keySet().stream().collect(Collectors.toList());
-
-                workoutsIds.sort(comparatorWorkoutDate);
-            }
-            return workoutsExtractedMap;
-        } catch (Exception e) {
-            Toast.makeText(requireContext(), "Error extracting workouts: " + e.getMessage(), Toast.LENGTH_LONG).show();
-            return null;
-        }
     }
 
     // Review
@@ -224,10 +207,13 @@ public class WorkoutFragment extends JsonFragment {
 
         try {
             workoutLayout.removeAllViews();
+            seriesMap.clear();
 
             List<HashMap<String, Object>> seriesList = serieRepository.getSeries(workoutId);
             for (HashMap<String, Object> serie: seriesList) {
-                seriesNames.add(Utils.getLetter(seriesNames.size()) + "- " + serie.get(SerieHelper.COLUMN_NAME));
+                String serieName = Utils.getLetter(seriesNames.size()) + "- " + serie.get(SerieHelper.COLUMN_NAME);
+                seriesNames.add(serieName);
+                seriesMap.put(serieName, (Long) serie.get(SerieHelper.COLUMN_ID));
             }
         } catch (Exception e) {
             Toast.makeText(getContext(), "Error loading Series: " + e.getMessage(), Toast.LENGTH_LONG).show();
@@ -240,7 +226,7 @@ public class WorkoutFragment extends JsonFragment {
         exerciseSeriesSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-//                setupExercisesCards(workoutId, seriesIds.get(position));
+                setupExercisesCards(seriesMap.get(exerciseSeriesSpinner.getSelectedItem().toString()));
             }
 
             @Override
@@ -250,55 +236,19 @@ public class WorkoutFragment extends JsonFragment {
         });
     }
 
-    // Review
-    private void setupExercisesCards(String workoutId, String serieId) {
-        HashMap<String, Object> workout = (HashMap<String, Object>) workoutsMap.get(workoutId);
-        if (workout == null) return;
+    private void setupExercisesCards(Long serieId) {
+        List<ExerciseModel> exercisesList = exerciseRepository.getExercises(serieId);
 
-        HashMap<String, Object> series = (HashMap<String, Object>) workout.get("Series");
-        if (series == null) return;
-
-        LinkedHashMap<String, Object> exercises = (LinkedHashMap<String, Object>) series.get(serieId);
-
-        if (exercises != null) {
-            LinkedHashMap<String, Object> exercisesCopy = new LinkedHashMap<String, Object>(exercises);
-
-            workoutLayout.removeAllViews();
-            while (exercisesCopy.keySet().stream().count() > 0){
-                String exercise = exercisesCopy.keySet().stream().findFirst().orElse(null).toString();
-                HashMap<String, Object> exerciseData = (HashMap<String, Object>) exercisesCopy.get(exercise);
-                exercisesCopy.remove(exercise);
-
-                View exerciseCard = LayoutInflater.from(getContext()).inflate(R.layout.workout_card, workoutLayout, false);
-                LinearLayout exerciseCardLayout = exerciseCard.findViewById(R.id.exercisesLayout);
-
-                setupExerciseCard(exercise, exerciseData, exerciseCardLayout);
-                if (exerciseData.containsKey("Sequence")) {
-                    List<String> chainedExercises = (List<String>) exerciseData.get("Sequence");
-                    for (String chainedExercise : chainedExercises) {
-                        if (!exercisesCopy.containsKey(chainedExercise)) continue;
-
-                        HashMap<String, Object> chainedExerciseData = (HashMap<String, Object>) exercisesCopy.get(chainedExercise);
-                        exercisesCopy.remove(chainedExercise);
-
-                        ImageView chainImage = new ImageView(getContext());
-                        chainImage.setImageResource(R.drawable.ic_link_16);
-                        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-                                LinearLayout.LayoutParams.WRAP_CONTENT,
-                                LinearLayout.LayoutParams.WRAP_CONTENT
-                        );
-                        chainImage.setLayoutParams(params);
-                        exerciseCardLayout.addView(chainImage);
-                        setupExerciseCard(chainedExercise, chainedExerciseData, exerciseCardLayout);
-                    }
-                }
-                workoutLayout.addView(exerciseCard);
-            }
+        workoutLayout.removeAllViews();
+        for (ExerciseModel exercise:exercisesList) {
+            View exerciseCard = LayoutInflater.from(getContext()).inflate(R.layout.workout_card, workoutLayout, false);
+            LinearLayout exerciseCardLayout = exerciseCard.findViewById(R.id.exercisesLayout);
+            setupExerciseCard(exerciseCardLayout, exercise);
+            workoutLayout.addView(exerciseCard);
         }
     }
 
-    // Review
-    private void setupExerciseCard(String exercise, HashMap<String, Object> exerciseData, LinearLayout layout) {
+    private void setupExerciseCard(LinearLayout layout, ExerciseModel  exercise) {
         View exerciseCard = LayoutInflater.from(getContext()).inflate(R.layout.exercise_layout, layout, false);
 
         TextView exerciseTextView = exerciseCard.findViewById(R.id.exerciseTextView);
@@ -306,13 +256,12 @@ public class WorkoutFragment extends JsonFragment {
         TextView seriesTextView = exerciseCard.findViewById(R.id.seriesTextView);
         TextView repetitionsTextView = exerciseCard.findViewById(R.id.repetitionsTextView);
 
-        exerciseTextView.setText(exercise);
-        muscleTextView.setText(exerciseData.get("Muscle").toString());
 
-        String series = exerciseData.getOrDefault("Series", "1").toString();
-        if (!series.equals("1")) seriesTextView.setText(series + " x");
+        exerciseTextView.setText(exercise.getName());
+        muscleTextView.setText(exercise.getMuscle());
+        seriesTextView.setText(exercise.getSeriesNumber() + " x");
+        repetitionsTextView.setText(exercise.getQuantity() + " " + exercise.getMeasure());
 
-        repetitionsTextView.setText(exerciseData.getOrDefault("Quantity", "").toString() + " " + exerciseData.getOrDefault("Type", "").toString());
         layout.addView(exerciseCard);
     }
 

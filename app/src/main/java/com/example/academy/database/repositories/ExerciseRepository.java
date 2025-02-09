@@ -1,5 +1,6 @@
 package com.example.academy.database.repositories;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -7,6 +8,10 @@ import android.database.sqlite.SQLiteDatabase;
 import com.example.academy.database.DatabaseManager;
 import com.example.academy.database.ExerciseHelper;
 import com.example.academy.database.SerieHelper;
+import com.example.academy.models.ExerciseModel;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ExerciseRepository {
     DatabaseManager databaseManager;
@@ -15,16 +20,50 @@ public class ExerciseRepository {
         databaseManager = new DatabaseManager(context);
     }
 
-    public Cursor getExercises(Long serieId) {
+    public ExerciseModel addExercise(ExerciseModel exercise) {
+        SQLiteDatabase sqLiteDatabase = databaseManager.getWritableDatabase();
+        ContentValues contentValues = new ContentValues();
+
+        contentValues.put(ExerciseHelper.COLUMN_NAME, exercise.getName());
+        contentValues.put(ExerciseHelper.COLUMN_SERIES_NUMBER, exercise.getSeriesNumber());
+        contentValues.put(ExerciseHelper.COLUMN_MEASURE, exercise.getMeasure());
+        contentValues.put(ExerciseHelper.COLUMN_QUANTITY, exercise.getQuantity());
+        contentValues.put(ExerciseHelper.COLUMN_MUSCLE, exercise.getMuscle());
+        contentValues.put(ExerciseHelper.COLUMN_SEQUENCE, exercise.getSequence());
+        contentValues.put(ExerciseHelper.COLUMN_OBSERVATION, exercise.getObservation());
+        contentValues.put(ExerciseHelper.COLUMN_SERIE_ID, exercise.getSerieId());
+
+        Long result = sqLiteDatabase.insert(ExerciseHelper.TABLE_NAME, null, contentValues);
+        sqLiteDatabase.close();
+        if (result != -1) {
+            exercise.setId(result);
+            return exercise;
+        }
+        return null;
+    }
+
+    public List<ExerciseModel> getExercises(Long serieId) {
         String query = "SELECT * FROM " + ExerciseHelper.TABLE_NAME +
                 " WHERE " + ExerciseHelper.COLUMN_SERIE_ID + " = ?" +
                 " ORDER BY " + SerieHelper.COLUMN_ID + " ASC;";
         SQLiteDatabase sqLiteDatabase = databaseManager.getReadableDatabase();
 
-        Cursor cursor = null;
+        List<ExerciseModel> exercisesList = new ArrayList<>();
+
         if (sqLiteDatabase != null) {
-            cursor = sqLiteDatabase.rawQuery(query, new String[]{String.valueOf(serieId)});
+            Cursor cursor = sqLiteDatabase.rawQuery(query, new String[]{String.valueOf(serieId)});
+
+            if (cursor.moveToFirst()) {
+                do {
+                    ExerciseModel exercise = new ExerciseModel(cursor.getLong(0), cursor.getString(1),
+                            cursor.getInt(2), cursor.getString(3), cursor.getInt(4), cursor.getString(5),
+                            cursor.getInt(6), cursor.getString(7), cursor.getLong(8));
+                    exercisesList.add(exercise);
+                } while (cursor.moveToNext());
+            }
+
+            cursor.close();
         }
-        return cursor;
+        return exercisesList;
     }
 }
