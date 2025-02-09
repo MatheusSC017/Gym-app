@@ -87,7 +87,7 @@ public class MainActivity extends AppCompatActivity {
                 } else if (item.getItemId() == R.id.download) {
                     downloadData();
                 } else {
-                    loadFragment(new HistoryFragment());
+                    loadFragment(new WorkoutFragment());
                 }
                 return false;
             }
