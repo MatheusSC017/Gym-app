@@ -258,7 +258,7 @@ public class WorkoutFragment extends JsonFragment {
 
         exerciseTextView.setText(exercise.getName());
         muscleTextView.setText(exercise.getMuscle());
-        seriesTextView.setText(exercise.getSeriesNumber() + " x");
+        if (exercise.getSeriesNumber() > 1) seriesTextView.setText(exercise.getSeriesNumber() + " x");
         repetitionsTextView.setText(exercise.getQuantity() + " " + exercise.getMeasure());
 
         layout.addView(exerciseCard);

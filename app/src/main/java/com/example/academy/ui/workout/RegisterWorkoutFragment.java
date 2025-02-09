@@ -10,7 +10,6 @@ import com.example.academy.ui.base.JsonFragment;
 import com.example.academy.utils.Utils;
 
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
 
@@ -19,7 +18,6 @@ import android.view.*;
 import android.widget.*;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 public class RegisterWorkoutFragment extends JsonFragment {
@@ -33,9 +31,6 @@ public class RegisterWorkoutFragment extends JsonFragment {
 
     private LinkedHashMap<Long, String> seriesIds = new LinkedHashMap<>();
     private LinkedHashMap<Long, ExerciseModel> exercises = new LinkedHashMap<>();
-
-    private LinkedHashMap<String, HashMap> exercisesSerie; // Remove Variable
-    private List<List<String>> sequenceGroups; // Remove Variable
 
     private LinearLayout exerciseLinearLayout;
     private Spinner seriesSpinner;
@@ -96,29 +91,6 @@ public class RegisterWorkoutFragment extends JsonFragment {
         for (SerieModel serie: seriesList) {
             seriesIds.put(serie.getId(), serie.getName());
         }
-    }
-
-    // Deprecated
-    private List<List<String>> loadSequenceArray(HashMap<String, HashMap> exercises) {
-        List<List<String>> sequenceArray = new ArrayList<>();
-        for (int i = 0; i < SEQUENCE_AVAILABLE_SELECTION; i++) sequenceArray.add(new ArrayList<>());
-
-        if (exercises != null && !exercises.isEmpty()) {
-            AtomicInteger sequenceCounter = new AtomicInteger(0);
-            List<String> recordedSequenceExercises = new ArrayList<>();
-
-            exercises.forEach((String exerciseName, HashMap exerciseData) -> {
-                if (!recordedSequenceExercises.contains(exerciseName) &&
-                        exerciseData.containsKey("Sequence") &&
-                        ((List) exerciseData.get("Sequence")).size() > 0) {
-                    recordedSequenceExercises.addAll((List) exerciseData.get("Sequence"));
-                    int index = sequenceCounter.getAndIncrement();
-                    sequenceArray.get(index).add(exerciseName);
-                    sequenceArray.get(index).addAll((List) exerciseData.get("Sequence"));
-                }
-            });
-        }
-        return  sequenceArray;
     }
 
     private void showSerieRegisterDialog() {
@@ -283,13 +255,12 @@ public class RegisterWorkoutFragment extends JsonFragment {
 
         exerciseTextView.setText(exercise.getName());
         muscleTextView.setText(exercise.getMuscle());
-        seriesTextView.setText(exercise.getSeriesNumber() + " x");
+        if (exercise.getSeriesNumber() > 1) seriesTextView.setText(exercise.getSeriesNumber() + " x");
         repetitionsTextView.setText(exercise.getQuantity() + " " + exercise.getMeasure());
 
         layout.addView(exerciseCard);
     }
 
-    // Review
     private void showEditExerciseDialog(Long exercise) {
         ExerciseModel exerciseModel = exercises.get(exercise);
 
@@ -359,57 +330,60 @@ public class RegisterWorkoutFragment extends JsonFragment {
     }
 
     private void removeExercise(Long exercise) {
-        boolean result = exerciseRepository.delete(exercise);
-        if (!result) {
-            Toast.makeText(getContext(), "Erro excluindo exercício", Toast.LENGTH_LONG).show();
-            return;
-        }
+        AlertDialog dialog = new AlertDialog.Builder(getContext())
+                .setTitle("Deseja confirmar a exclusão deste exercício?")
+                .setPositiveButton("Confirmar", ((dialogInterface, i) -> {
+                    boolean result = exerciseRepository.delete(exercise);
+                    if (!result) {
+                        Toast.makeText(getContext(), "Erro excluindo exercício", Toast.LENGTH_LONG).show();
+                        return;
+                    }
 
-        ExerciseModel exerciseModel = exercises.get(exercise);
-        if (exerciseModel != null) {
-            exercises.remove(exercise);
+                    ExerciseModel exerciseModel = exercises.get(exercise);
+                    if (exerciseModel != null) {
+                        exercises.remove(exercise);
 
-            for (int i = 0; i <= exerciseLinearLayout.getChildCount(); i++) {
-                View exerciseCard = exerciseLinearLayout.getChildAt(i);
-                TextView exerciseTextView = exerciseCard.findViewById(R.id.exerciseTextView);
-                if (exerciseTextView.getText().toString().equals(exerciseModel.getName())) {
-                    exerciseLinearLayout.removeView(exerciseCard);
-                    break;
-                }
-            }
-        }
-
+                        for (int j = 0; j <= exerciseLinearLayout.getChildCount(); j++) {
+                            View exerciseCard = exerciseLinearLayout.getChildAt(j);
+                            TextView exerciseTextView = exerciseCard.findViewById(R.id.exerciseTextView);
+                            if (exerciseTextView.getText().toString().equals(exerciseModel.getName())) {
+                                exerciseLinearLayout.removeView(exerciseCard);
+                                break;
+                            }
+                        }
+                    }
+                })).setNegativeButton("Cancelar", ((dialogInterface, i) -> {
+                    // Do nothing
+                })).create();
+        dialog.show();
     }
 
-    // Review
     private void showSetLinksDialog() {
-        Context context = getContext();
-        if (exercisesSerie.isEmpty()) {
-            Toast.makeText(context, "Nenhum exercício cadastrado", Toast.LENGTH_LONG).show();
+        if (exercises.isEmpty()) {
+            Toast.makeText(getContext(), "Nenhum exercício cadastrado", Toast.LENGTH_LONG).show();
             return;
         }
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
 
-        LayoutInflater inflater = LayoutInflater.from(context);
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+
+        LayoutInflater inflater = LayoutInflater.from(getContext());
         View dialogView = inflater.inflate(R.layout.dialog_scroll_view, null);
         LinearLayout container = dialogView.findViewById(R.id.container);
 
-        for (String exercise: exercisesSerie.keySet()) {
+        for (ExerciseModel exercise: exercises.values()) {
             View sequenceView = inflater.inflate(R.layout.sequence_selection_layout, container, false);
 
             TextView exerciseTextView = sequenceView.findViewById(R.id.exerciseTextView);
             Spinner sequenceSpinner = sequenceView.findViewById(R.id.sequenceSpinner);
 
-            exerciseTextView.setText(exercise);
-            ArrayAdapter<Integer> adapter = new ArrayAdapter<>(context, android.R.layout.simple_spinner_item);
+            exerciseTextView.setText(exercise.getName());
+            ArrayAdapter<Integer> adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item);
             adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-            int selectedSequence = 0;
             for (int i = 0; i <= SEQUENCE_AVAILABLE_SELECTION; i++) {
                 adapter.add(i);
-                if (i > 0 && sequenceGroups.get(i - 1).contains(exercise)) selectedSequence = i;
             }
             sequenceSpinner.setAdapter(adapter);
-            sequenceSpinner.setSelection(selectedSequence);
+            sequenceSpinner.setSelection(exercise.getSequence());
 
             container.addView(sequenceView);
         }
@@ -422,19 +396,15 @@ public class RegisterWorkoutFragment extends JsonFragment {
 
     }
 
-    // Review
     private void setLinks(LinearLayout container) {
-        for (int j = 0; j < SEQUENCE_AVAILABLE_SELECTION; j++) sequenceGroups.get(j).clear();
-
         for (int j = 0; j < container.getChildCount(); j++) {
             LinearLayout sequenceView = (LinearLayout) container.getChildAt(j);
-            TextView exerciseTextView = sequenceView.findViewById(R.id.exerciseTextView);
             Spinner sequenceSpinner = sequenceView.findViewById(R.id.sequenceSpinner);
 
             int sequenceValue = Integer.parseInt(sequenceSpinner.getSelectedItem().toString());
-            if (sequenceValue != 0) {
-                sequenceGroups.get(sequenceValue - 1).add(exerciseTextView.getText().toString());
-            }
+            ExerciseModel exerciseModel = exercises.values().stream().collect(Collectors.toList()).get(j);
+            exerciseModel.setSequence(sequenceValue);
+            exerciseRepository.update(exerciseModel.getId(), exerciseModel);
 
         }
     }

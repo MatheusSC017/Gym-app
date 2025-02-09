@@ -51,6 +51,7 @@ public class ExerciseRepository {
         contentValues.put(ExerciseHelper.COLUMN_MEASURE, exercise.getMeasure());
         contentValues.put(ExerciseHelper.COLUMN_QUANTITY, exercise.getQuantity());
         contentValues.put(ExerciseHelper.COLUMN_MUSCLE, exercise.getMuscle());
+        contentValues.put(ExerciseHelper.COLUMN_SEQUENCE, exercise.getSequence());
         contentValues.put(ExerciseHelper.COLUMN_OBSERVATION, exercise.getObservation());
 
         int result = sqLiteDatabase.update(ExerciseHelper.TABLE_NAME, contentValues,
