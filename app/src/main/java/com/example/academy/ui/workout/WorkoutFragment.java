@@ -239,10 +239,33 @@ public class WorkoutFragment extends JsonFragment {
         List<ExerciseModel> exercisesList = exerciseRepository.getAll(serieId);
 
         workoutLayout.removeAllViews();
-        for (ExerciseModel exercise:exercisesList) {
+        while (exercisesList.size() > 0) {
+            ExerciseModel exercise = exercisesList.get(0);
+            exercisesList.remove(0);
             View exerciseCard = LayoutInflater.from(getContext()).inflate(R.layout.workout_card, workoutLayout, false);
             LinearLayout exerciseCardLayout = exerciseCard.findViewById(R.id.exercisesLayout);
             setupExerciseCard(exerciseCardLayout, exercise);
+            if (exercise.getSequence() != 0) {
+                int i = 0;
+                while (exercisesList.size() > i) {
+                    ExerciseModel exerciseSequence = exercisesList.get(i);
+                    if (exercise.getSequence().equals(exerciseSequence.getSequence())) {
+                        exercisesList.remove(i);
+
+                        ImageView chainImage = new ImageView(getContext());
+                        chainImage.setImageResource(R.drawable.ic_link_16);
+                        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                                LinearLayout.LayoutParams.WRAP_CONTENT,
+                                LinearLayout.LayoutParams.WRAP_CONTENT
+                        );
+                        chainImage.setLayoutParams(params);
+                        exerciseCardLayout.addView(chainImage);
+                        setupExerciseCard(exerciseCardLayout, exerciseSequence);
+                        continue;
+                    }
+                    i = i + 1;
+                }
+            }
             workoutLayout.addView(exerciseCard);
         }
     }

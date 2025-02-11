@@ -2,7 +2,6 @@ package com.example.academy.ui.workout;
 
 import com.example.academy.MainActivity;
 import com.example.academy.R;
-import com.example.academy.database.ExerciseHelper;
 import com.example.academy.database.repositories.ExerciseRepository;
 import com.example.academy.database.repositories.SerieRepository;
 import com.example.academy.models.ExerciseModel;
