@@ -12,6 +12,7 @@ public class MeasureHelper {
             " (" + COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
             COLUMN_NAME + " TEXT NOT NULL, " +
             COLUMN_VALUE + " INTEGER NOT NULL, " +
+            COLUMN_PERSONAL_ID + " INTEGER NOT NULL, " +
             "FOREIGN KEY (" + COLUMN_PERSONAL_ID + ") " +
             "REFERENCES " + PersonalHelper.TABLE_NAME + "(" + PersonalHelper.COLUMN_ID + "));";
 

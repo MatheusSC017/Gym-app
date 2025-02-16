@@ -9,19 +9,31 @@ import android.widget.*;
 
 import com.example.academy.MainActivity;
 import com.example.academy.R;
+import com.example.academy.database.repositories.FoldRepository;
+import com.example.academy.database.repositories.MeasureRepository;
+import com.example.academy.database.repositories.PersonalRepository;
+import com.example.academy.models.FoldModel;
+import com.example.academy.models.MeasureModel;
+import com.example.academy.models.PersonalModel;
 import com.example.academy.ui.base.JsonFragment;
-import com.example.academy.view.EditTextDate;
+import com.example.academy.ui.workout.WorkoutFragment;
 
 import java.util.*;
 
 public class RegisterPersonalFragment extends JsonFragment {
-    private static String WORKOUTS_FILE = "workouts.json";
-    private static Boolean editable = false;
+    private Long personalId;
 
-    HashMap<String, Integer> measuresMap = new HashMap<>();
-    HashMap<String, Integer> foldsMap = new HashMap<>();
+    private PersonalRepository personalRepository = null;
+    private MeasureRepository measureRepository = null;
+    private FoldRepository foldRepository = null;
 
-    private EditTextDate personalEditTextDate;
+    List<Long> deletedMeasuresList = new ArrayList<>();
+    List<Long> deletedFoldsList = new ArrayList<>();
+
+    HashMap<String, MeasureModel> measuresMap = new HashMap<>();
+    HashMap<String, FoldModel> foldsMap = new HashMap<>();
+
+    private TextView personalTextView;
     private EditText imcEditText;
     private EditText heightEditText;
     private EditText weightEditText;
@@ -30,21 +42,17 @@ public class RegisterPersonalFragment extends JsonFragment {
     private EditText fatWeightEditText;
     private LinearLayout measuresLayout;
     private LinearLayout foldsLayout;
-    private EditText measureNameEditText;
-    private EditText measureValueEditText;
-    private EditText foldNameEditText;
-    private EditText foldValueEditText;
-    private Button insertMeasureButton;
-    private Button insertFoldButton;
-    private Button returnButton;
-    private Button saveButton;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_register_personal, container, false);
 
-        personalEditTextDate = view.findViewById(R.id.personalEditTextDate);
+        personalRepository = new PersonalRepository(getContext());
+        measureRepository = new MeasureRepository(getContext());
+        foldRepository = new FoldRepository(getContext());
+
+        personalTextView = view.findViewById(R.id.personalTextView);
         imcEditText = view.findViewById(R.id.imcEditText);
         heightEditText = view.findViewById(R.id.heightEditText);
         weightEditText = view.findViewById(R.id.weightEditText);
@@ -53,147 +61,121 @@ public class RegisterPersonalFragment extends JsonFragment {
         fatWeightEditText = view.findViewById(R.id.fatWeightEditText);
         measuresLayout = view.findViewById(R.id.measuresLayout);
         foldsLayout = view.findViewById(R.id.foldsLayout);
-        measureNameEditText = view.findViewById(R.id.measureNameEditText);
-        measureValueEditText = view.findViewById(R.id.measureValueEditText);
-        foldNameEditText = view.findViewById(R.id.foldNameEditText);
-        foldValueEditText = view.findViewById(R.id.foldValueEditText);
-        insertMeasureButton = view.findViewById(R.id.insertMeasureButton);
-        insertFoldButton = view.findViewById(R.id.insertFoldButton);
-        returnButton = view.findViewById(R.id.returnButton);
-        saveButton = view.findViewById(R.id.saveButton);
 
+        Button returnButton = view.findViewById(R.id.returnButton);
         returnButton.setOnClickListener(event -> {
-            AlertDialog dialog = new AlertDialog.Builder(getContext())
-                    .setTitle("Caso opte por retornar as informações serão perdidas")
-                    .setNegativeButton("Cancelar", null)
-                    .setPositiveButton("Confirmar", (((dialogInterface, i) -> {
-                        if (getActivity() instanceof MainActivity) {
-                            ((MainActivity) getActivity()).loadFragment(new PersonalFragment());
-                        }
-                    }))).create();
-            dialog.show();
+            if (getActivity() instanceof MainActivity) ((MainActivity) getActivity()).loadFragment(new PersonalFragment());
         });
 
+        Button saveButton = view.findViewById(R.id.saveButton);
         saveButton.setOnClickListener(event -> savePersonalData());
 
-        insertMeasureButton.setOnClickListener(event -> {
-            insertValueSubList(measureNameEditText, measureValueEditText, measuresLayout, measuresMap);
-        });
+        Button insertMeasureButton = view.findViewById(R.id.insertMeasureButton);
+        insertMeasureButton.setOnClickListener(event -> insertMeasure());
 
-        insertFoldButton.setOnClickListener(event -> {
-            insertValueSubList(foldNameEditText, foldValueEditText, foldsLayout, foldsMap);
-        });
+        Button insertFoldButton = view.findViewById(R.id.insertFoldButton);
+        insertFoldButton.setOnClickListener(event -> insertFold());
 
         Bundle bundle = getArguments();
-        if (bundle != null) {
-            editable = true;
+        if (bundle == null || !bundle.containsKey("personal_id"))
+            if (getActivity() instanceof MainActivity) ((MainActivity) getActivity()).loadFragment(new WorkoutFragment());
 
-            String personalDate = bundle.getString("personalDate");
-            loadPersonalData(personalDate);
-        } else {
-            setPersonalDate();
-        }
+        personalId = bundle.getLong("personal_id");
+
+        loadPersonalData();
 
         return view;
     }
 
-    private void loadPersonalData(String personalDate) {
-        HashMap<String, Object> storedData = loadJsonData(WORKOUTS_FILE);
-        if (storedData.containsKey(personalDate)) {
-            HashMap<String, Object> registerData = (HashMap<String, Object>) storedData.get(personalDate);
-            HashMap<String, Object> personalData = (HashMap<String, Object>) registerData.getOrDefault("Personal", new HashMap<>());
+    private void loadPersonalData() {
+        PersonalModel personalModel = personalRepository.get(personalId);
 
-            personalEditTextDate.setText(personalDate);
-            imcEditText.setText(personalData.getOrDefault("IMC", "").toString());
-            heightEditText.setText(personalData.getOrDefault("Height", "").toString());
-            weightEditText.setText(personalData.getOrDefault("Weight", "").toString());
-            fatPercentageEditText.setText(personalData.getOrDefault("Fat percentage", "").toString());
-            leanBodyMassEditText.setText(personalData.getOrDefault("Lean mass", "").toString());
-            fatWeightEditText.setText(personalData.getOrDefault("Fat weight", "").toString());
+        personalTextView.setText(personalModel.getDate());
+        imcEditText.setText(personalModel.getImc().toString());
+        heightEditText.setText(personalModel.getHeight().toString());
+        weightEditText.setText(personalModel.getWeight().toString());
+        fatPercentageEditText.setText(personalModel.getFatPercentage().toString());
+        leanBodyMassEditText.setText(personalModel.getLeanMass().toString());
+        fatWeightEditText.setText(personalModel.getFatWeight().toString());
 
-            measuresMap = (HashMap<String, Integer>) personalData.getOrDefault("Measures", new HashMap<>());
-            foldsMap = (HashMap<String, Integer>) personalData.getOrDefault("Folds", new HashMap<>());
-
-            measuresMap.forEach((name, value) -> setupSubItemLayout(name, value.toString(), measuresLayout, measuresMap));
-            foldsMap.forEach((name, value) -> setupSubItemLayout(name, value.toString(), foldsLayout, foldsMap));
-
-        }
-    }
-
-    private void setPersonalDate() {
-        Date today = new Date();
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(today);
-
-        String month;
-        if (calendar.get(Calendar.MONTH) <= 9)
-            month = "0" + (calendar.get(Calendar.MONTH) + 1);
-        else
-            month = String.valueOf(calendar.get(Calendar.MONTH) + 1);
-        personalEditTextDate.setText(month + "/" + calendar.get(Calendar.YEAR));
+        List<MeasureModel> measuresList = measureRepository.getAll(personalModel.getId());
+        measuresLayout.removeAllViews();
+        measuresList.forEach((MeasureModel measure) -> {
+            measuresMap.put(measure.getName(), measure);
+            setupMeasureLayout(measure.getName(), measure.getValue().toString());
+        });
+        List<FoldModel> foldsList = foldRepository.getAll(personalModel.getId());
+        foldsLayout.removeAllViews();
+        foldsList.forEach((FoldModel fold) -> {
+            foldsMap.put(fold.getName(), fold);
+            setupFoldLayout(fold.getName(), fold.getValue().toString());
+        });
     }
 
     private void savePersonalData(){
-        String personalDate = personalEditTextDate.getText().toString();
-        if (personalDate.length() != 7) {
-            Toast.makeText(getContext(), "Insira a data da avaliação", Toast.LENGTH_LONG).show();
+        PersonalModel personal = new PersonalModel(personalId, personalTextView.getText().toString(),
+                Float.valueOf(weightEditText.getText().toString()), Float.valueOf(heightEditText.getText().toString()),
+                Float.valueOf(leanBodyMassEditText.getText().toString()), Float.valueOf(fatWeightEditText.getText().toString()),
+                Float.valueOf(fatPercentageEditText.getText().toString()), Float.valueOf(imcEditText.getText().toString()));
+
+        boolean result = personalRepository.update(personalId, personal);
+        if (!result) {
+            Toast.makeText(getContext(), "Erro ao salvar os dados pessoais", Toast.LENGTH_LONG).show();
             return;
         }
 
-        HashMap<String, Object> storedData = loadJsonData(WORKOUTS_FILE);
+        measuresMap.forEach((String measureName, MeasureModel measure) -> {
+            if (measure.getId().equals(0L)) {
+                measureRepository.add(measure);
+            } else {
+                measureRepository.update(measure.getId(), measure);
+            }
+        });
 
-        if (!storedData.containsKey(personalDate)) storedData.put(personalDate, new HashMap<>());
-        HashMap<String, HashMap> registerDate = (HashMap<String, HashMap>) storedData.get(personalDate);
+        for (Long id: deletedMeasuresList) measureRepository.delete(id);
 
-        if (!editable && registerDate != null && registerDate.containsKey("Personal")) {
-            Toast.makeText(getContext(), "Já existe registro com esta data", Toast.LENGTH_LONG).show();
-            return;
-        }
+        foldsMap.forEach((String foldName, FoldModel fold) -> {
+            if (fold.getId().equals(0L)) {
+                foldRepository.add(fold);
+            } else {
+                foldRepository.update(fold.getId(), fold);
+            }
+        });
 
-        if (!registerDate.containsKey("Personal")) registerDate.put("Personal", new HashMap<>());
-        HashMap<String, Object> personalData = registerDate.get("Personal");
+        for (Long id: deletedFoldsList) foldRepository.delete(id);
 
-        personalData.put("IMC", imcEditText.getText().toString());
-        personalData.put("Height", heightEditText.getText().toString());
-        personalData.put("Weight", weightEditText.getText().toString());
-        personalData.put("Fat percentage", fatPercentageEditText.getText().toString());
-        personalData.put("Lean mass", leanBodyMassEditText.getText().toString());
-        personalData.put("Fat weight", fatWeightEditText.getText().toString());
-
-        personalData.put("Measures", measuresMap);
-        personalData.put("Folds", foldsMap);
-
-        saveToInternalStorage(storedData, WORKOUTS_FILE);
         Toast.makeText(getContext(), "Dados Pessoais salvos", Toast.LENGTH_LONG).show();
-
         if (getActivity() instanceof MainActivity) {
             ((MainActivity) getActivity()).loadFragment(new PersonalFragment());
         }
     }
 
-    private void insertValueSubList(EditText nameEditText, EditText valueEditText,
-                                    LinearLayout layout, HashMap<String, Integer> subList) {
-        String name = nameEditText.getText().toString();
-        String value = valueEditText.getText().toString();
+    private void insertFold() {
+        EditText foldNameEditText = getView().findViewById(R.id.foldNameEditText);
+        String name = foldNameEditText.getText().toString();
+        foldNameEditText.setText("");
+
+        EditText foldValueEditText = getView().findViewById(R.id.foldValueEditText);
+        String value = foldValueEditText.getText().toString();
+        foldValueEditText.setText("");
 
         if (name.isEmpty() || value.isEmpty()) {
             return;
         }
 
-        if (subList.containsKey(name)) {
+        if (foldsMap.containsKey(name)) {
             Toast.makeText(getContext(), "Já existe registro com esse nome", Toast.LENGTH_LONG).show();
             return;
         }
 
-        nameEditText.setText("");
-        valueEditText.setText("");
+        FoldModel fold = new FoldModel(0L, name, Integer.valueOf(value), personalId);
 
-        subList.put(name, Integer.valueOf(value));
-        setupSubItemLayout(name, value, layout, subList);
+        foldsMap.put(name, fold);
+        setupFoldLayout(name, value);
     }
 
-    private void setupSubItemLayout(String name, String value, LinearLayout layout, HashMap<String, Integer> subList) {
-        View personalCard = LayoutInflater.from(getContext()).inflate(R.layout.register_layout, layout, false);
+    private void setupFoldLayout(String name, String value) {
+        View personalCard = LayoutInflater.from(getContext()).inflate(R.layout.register_layout, foldsLayout, false);
         ViewStub contentViewStub = personalCard.findViewById(R.id.contentViewStub);
         contentViewStub.setLayoutResource(R.layout.personal_layout);
         View contentInflated = contentViewStub.inflate();
@@ -207,7 +189,7 @@ public class RegisterPersonalFragment extends JsonFragment {
         editExerciseButton.setOnClickListener(event -> {
             EditText valueEditText = new EditText(getContext());
             valueEditText.setInputType(InputType.TYPE_CLASS_NUMBER);
-            valueEditText.setText(String.valueOf(subList.get(name)));
+            valueEditText.setText(value);
             AlertDialog dialog = new AlertDialog.Builder(getContext())
                     .setTitle("Insira um novo valor para " + name)
                     .setView(valueEditText)
@@ -215,18 +197,94 @@ public class RegisterPersonalFragment extends JsonFragment {
                     .setPositiveButton("Confirmar", (((dialogInterface, i) -> {
                         String newValue = valueEditText.getText().toString();
                         if (!newValue.isEmpty()) {
-                            subList.put(name, Integer.valueOf(newValue));
+                            FoldModel fold = foldsMap.get(name);
+                            fold.setValue(Integer.valueOf(newValue));
                             textView.setText(name + ": " + newValue);
                         }
                     }))).create();
             dialog.show();
         });
         removeExerciseButton.setOnClickListener(event -> {
-            layout.removeView(personalCard);
-            subList.remove(name);
+            Long id = foldsMap.get(name).getId();
+
+            if (!id.equals(0L)) {
+                deletedFoldsList.add(id);
+            }
+
+            foldsLayout.removeView(personalCard);
+            foldsMap.remove(name);
         });
 
-        layout.addView(personalCard);
+        foldsLayout.addView(personalCard);
+    }
+
+    private void insertMeasure() {
+        EditText measureNameEditText = getView().findViewById(R.id.measureNameEditText);
+        String name = measureNameEditText.getText().toString();
+        measureNameEditText.setText("");
+
+        EditText measureValueEditText = getView().findViewById(R.id.measureValueEditText);
+        String value = measureValueEditText.getText().toString();
+        measureValueEditText.setText("");
+
+        if (name.isEmpty() || value.isEmpty()) {
+            return;
+        }
+
+        if (measuresMap.containsKey(name)) {
+            Toast.makeText(getContext(), "Já existe registro com esse nome", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        MeasureModel measure = new MeasureModel(0L, name, Integer.valueOf(value), personalId);
+
+        measuresMap.put(name, measure);
+        setupMeasureLayout(name, value);
+
+    }
+
+    private void setupMeasureLayout(String name, String value) {
+        View personalCard = LayoutInflater.from(getContext()).inflate(R.layout.register_layout, measuresLayout, false);
+        ViewStub contentViewStub = personalCard.findViewById(R.id.contentViewStub);
+        contentViewStub.setLayoutResource(R.layout.personal_layout);
+        View contentInflated = contentViewStub.inflate();
+
+        TextView textView = contentInflated.findViewById(R.id.personalTextView);
+        textView.setText(name + ": " + value);
+
+        Button editExerciseButton = personalCard.findViewById(R.id.editExerciseButton);
+        Button removeExerciseButton = personalCard.findViewById(R.id.removeExerciseButton);
+
+        editExerciseButton.setOnClickListener(event -> {
+            EditText valueEditText = new EditText(getContext());
+            valueEditText.setInputType(InputType.TYPE_CLASS_NUMBER);
+            valueEditText.setText(value);
+            AlertDialog dialog = new AlertDialog.Builder(getContext())
+                    .setTitle("Insira um novo valor para " + name)
+                    .setView(valueEditText)
+                    .setNegativeButton("Cancelar", null)
+                    .setPositiveButton("Confirmar", (((dialogInterface, i) -> {
+                        String newValue = valueEditText.getText().toString();
+                        if (!newValue.isEmpty()) {
+                            MeasureModel measure = measuresMap.get(name);
+                            measure.setValue(Integer.valueOf(newValue));
+                            textView.setText(name + ": " + newValue);
+                        }
+                    }))).create();
+            dialog.show();
+        });
+        removeExerciseButton.setOnClickListener(event -> {
+            Long id = measuresMap.get(name).getId();
+
+            if (!id.equals(0L)) {
+                deletedMeasuresList.add(id);
+            }
+
+            measuresLayout.removeView(personalCard);
+            measuresMap.remove(name);
+        });
+
+        measuresLayout.addView(personalCard);
     }
 
 }

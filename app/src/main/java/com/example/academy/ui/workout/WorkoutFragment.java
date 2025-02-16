@@ -87,7 +87,7 @@ public class WorkoutFragment extends JsonFragment {
 
         LocalDate today = LocalDate.now();
 
-        final EditTextDate workoutEditTextDate = new EditTextDate(getContext());
+        EditTextDate workoutEditTextDate = new EditTextDate(getContext());
         workoutEditTextDate.setText(twoDecimalFormatter.format(today.getMonthValue()) + "/" + today.getYear());
         workoutEditTextDate.setInputType(InputType.TYPE_CLASS_TEXT);
         builder.setView(workoutEditTextDate);
@@ -117,17 +117,18 @@ public class WorkoutFragment extends JsonFragment {
         long result = workoutRepository.add(workout);
         if (result == -1) {
             Toast.makeText(getContext(), "Erro: Verifique se um treino nesta data já existe.", Toast.LENGTH_LONG).show();
-        } else {
-            Bundle bundle = new Bundle();
-            bundle.putLong("workout_id", result);
-            bundle.putString("workout_date", workout);
+            return;
+        }
 
-            RegisterWorkoutFragment fragment = new RegisterWorkoutFragment();
-            fragment.setArguments(bundle);
+        Bundle bundle = new Bundle();
+        bundle.putLong("workout_id", result);
+        bundle.putString("workout_date", workout);
 
-            if (getActivity() instanceof MainActivity) {
-                ((MainActivity) getActivity()).loadFragment(fragment);
-            }
+        RegisterWorkoutFragment fragment = new RegisterWorkoutFragment();
+        fragment.setArguments(bundle);
+
+        if (getActivity() instanceof MainActivity) {
+            ((MainActivity) getActivity()).loadFragment(fragment);
         }
     }
 

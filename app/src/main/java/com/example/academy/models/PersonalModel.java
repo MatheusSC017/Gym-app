@@ -2,6 +2,7 @@ package com.example.academy.models;
 
 public class PersonalModel {
     private Long id;
+    private String date;
     private Float weight;
     private Float height;
     private Float leanMass;
@@ -9,14 +10,23 @@ public class PersonalModel {
     private Float fatPercentage;
     private Float imc;
 
-    public PersonalModel(Long id, Float weight, Float height, Float leanMass, Float fatWeight, Float fatPercentage, Float imc) {
+    public PersonalModel(Long id, String date, Float weight, Float height, Float leanMass, Float fatWeight, Float fatPercentage, Float imc) {
         setId(id);
+        setDate(date);
         setWeight(weight);
         setHeight(height);
         setLeanMass(leanMass);
         setFatWeight(fatWeight);
         setFatPercentage(fatPercentage);
         setImc(imc);
+    }
+
+    public String getDate() {
+        return date;
+    }
+
+    public void setDate(String date) {
+        this.date = date;
     }
 
     public Float getFatPercentage() {
