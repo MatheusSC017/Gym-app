@@ -31,35 +31,12 @@ public class WorkoutFragment extends JsonFragment {
     SerieRepository serieRepository = null;
     ExerciseRepository exerciseRepository = null;
 
-    DecimalFormat twoDecimalFormatter = new DecimalFormat("00");
-    Comparator<String> comparatorWorkoutDate = new Comparator<String>() {
-        @Override
-        public int compare(String o1, String o2) {
-            String[] parts1 = o1.split("/");
-            String[] parts2 = o2.split("/");
-
-            int year1 = Integer.parseInt(parts1[1]);
-            int month1 = Integer.parseInt(parts1[0]);
-            int year2 = Integer.parseInt(parts2[1]);
-            int month2 = Integer.parseInt(parts2[0]);
-
-            if (year1 != year2) {
-                return Integer.compare(year2, year1);
-            } else {
-                return Integer.compare(month2, month1);
-            }
-        }
-    };
-
     private LinkedHashMap<String, Long> workoutDates = new LinkedHashMap<>();
     private LinkedHashMap<String, Long> seriesMap = new LinkedHashMap<>();
 
     private LinearLayout workoutLayout;
     private Spinner workoutsSpinner;
     private Spinner exerciseSeriesSpinner;
-    private Button insertButton;
-    private Button editButton;
-    private Button deleteButton;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -70,17 +47,17 @@ public class WorkoutFragment extends JsonFragment {
         serieRepository = new SerieRepository(getContext());
         exerciseRepository = new ExerciseRepository(getContext());
 
-        insertButton = view.findViewById(R.id.insertButton);
-        editButton = view.findViewById(R.id.editButton);
-        deleteButton = view.findViewById(R.id.deleteButton);
         workoutLayout = view.findViewById(R.id.workoutLayout);
         workoutsSpinner = view.findViewById(R.id.personalDateSpinner);
         exerciseSeriesSpinner = view.findViewById(R.id.exerciseSeriesSpinner);
 
-        insertButton.setOnClickListener(event -> insertWorkout());
+        Button insertButton = view.findViewById(R.id.insertButton);
+        insertButton.setOnClickListener(event -> showInsertWorkoutDialog());
 
+        Button editButton = view.findViewById(R.id.editButton);
         editButton.setOnClickListener(event -> navigateEditWorkout());
 
+        Button deleteButton = view.findViewById(R.id.deleteButton);
         deleteButton.setOnClickListener(event -> deleteWorkout());
 
         setupWorkoutSpinner();
@@ -100,51 +77,29 @@ public class WorkoutFragment extends JsonFragment {
         RegisterWorkoutFragment fragment = new RegisterWorkoutFragment();
         fragment.setArguments(bundle);
 
-        if (getActivity() instanceof MainActivity) {
-            ((MainActivity) getActivity()).loadFragment(fragment);
-        }
+        if (getActivity() instanceof MainActivity) ((MainActivity) getActivity()).loadFragment(fragment);
     }
 
-    public void insertWorkout() {
+    public void showInsertWorkoutDialog() {
+        DecimalFormat twoDecimalFormatter = new DecimalFormat("00");
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
         builder.setTitle("Adicionar Treino");
 
         LocalDate today = LocalDate.now();
 
-        final EditTextDate workoutEditTextDate = new EditTextDate(getContext());
+        EditTextDate workoutEditTextDate = new EditTextDate(getContext());
         workoutEditTextDate.setText(twoDecimalFormatter.format(today.getMonthValue()) + "/" + today.getYear());
         workoutEditTextDate.setInputType(InputType.TYPE_CLASS_TEXT);
         builder.setView(workoutEditTextDate);
 
         builder.setPositiveButton("Cadastrar", new DialogInterface.OnClickListener() {
-
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
-                if (workoutEditTextDate.getText().length() != 7) {
-                    Toast.makeText(getContext(), "Insira uma data válida", Toast.LENGTH_LONG).show();
-                    return;
-                }
-                String workoutDate = workoutEditTextDate.getText().toString();
-                long result = workoutRepository.add(workoutDate);
-                if (result == -1) {
-                    Toast.makeText(getContext(), "Erro: Verifique se um treino nesta data já existe.", Toast.LENGTH_LONG).show();
-                } else {
-                    Bundle bundle = new Bundle();
-                    bundle.putLong("workout_id", result);
-                    bundle.putString("workout_date", workoutDate);
-
-                    RegisterWorkoutFragment fragment = new RegisterWorkoutFragment();
-                    fragment.setArguments(bundle);
-
-                    if (getActivity() instanceof MainActivity) {
-                        ((MainActivity) getActivity()).loadFragment(fragment);
-                    }
-                }
+                insertWorkout(workoutEditTextDate.getText().toString());
             }
         });
 
         builder.setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
-
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
                 dialogInterface.cancel();
@@ -152,6 +107,29 @@ public class WorkoutFragment extends JsonFragment {
         });
 
         builder.show();
+    }
+
+    private void insertWorkout(String workout) {
+        if (workout.length() != 7) {
+            Toast.makeText(getContext(), "Insira uma data válida", Toast.LENGTH_LONG).show();
+            return;
+        }
+        long result = workoutRepository.add(workout);
+        if (result == -1) {
+            Toast.makeText(getContext(), "Erro: Verifique se um treino nesta data já existe.", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        Bundle bundle = new Bundle();
+        bundle.putLong("workout_id", result);
+        bundle.putString("workout_date", workout);
+
+        RegisterWorkoutFragment fragment = new RegisterWorkoutFragment();
+        fragment.setArguments(bundle);
+
+        if (getActivity() instanceof MainActivity) {
+            ((MainActivity) getActivity()).loadFragment(fragment);
+        }
     }
 
     private void deleteWorkout() {
@@ -175,6 +153,24 @@ public class WorkoutFragment extends JsonFragment {
 
     private void setupWorkoutSpinner() {
         List<WorkoutModel> workoutsList = workoutRepository.getAll();
+        Comparator<String> comparatorWorkoutDate = new Comparator<String>() {
+            @Override
+            public int compare(String o1, String o2) {
+                String[] parts1 = o1.split("/");
+                String[] parts2 = o2.split("/");
+
+                int year1 = Integer.parseInt(parts1[1]);
+                int month1 = Integer.parseInt(parts1[0]);
+                int year2 = Integer.parseInt(parts2[1]);
+                int month2 = Integer.parseInt(parts2[0]);
+
+                if (year1 != year2) {
+                    return Integer.compare(year2, year1);
+                } else {
+                    return Integer.compare(month2, month1);
+                }
+            }
+        };
 
         workoutDates.clear();
         for (WorkoutModel workout: workoutsList) {
@@ -202,21 +198,7 @@ public class WorkoutFragment extends JsonFragment {
     }
 
     private void setupSeriesSpinner(Long workoutId) {
-        List<String> seriesNames = new ArrayList<>();
-
-        try {
-            workoutLayout.removeAllViews();
-            seriesMap.clear();
-
-            List<SerieModel> seriesList = serieRepository.getAll(workoutId);
-            for (SerieModel serie: seriesList) {
-                String serieName = Utils.getLetter(seriesNames.size()) + "- " + serie.getName();
-                seriesNames.add(serieName);
-                seriesMap.put(serieName, serie.getId());
-            }
-        } catch (Exception e) {
-            Toast.makeText(getContext(), "Error loading Series: " + e.getMessage(), Toast.LENGTH_LONG).show();
-        }
+        List<String> seriesNames = loadSeriesNames(workoutId);
 
         ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item, seriesNames);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -235,14 +217,56 @@ public class WorkoutFragment extends JsonFragment {
         });
     }
 
+    private List<String> loadSeriesNames(Long workoutId) {
+        List<String> seriesNames = new ArrayList<>();
+        try {
+            workoutLayout.removeAllViews();
+            seriesMap.clear();
+
+            List<SerieModel> seriesList = serieRepository.getAll(workoutId);
+            for (SerieModel serie: seriesList) {
+                String serieName = Utils.getLetter(seriesNames.size()) + "- " + serie.getName();
+                seriesNames.add(serieName);
+                seriesMap.put(serieName, serie.getId());
+            }
+        } catch (Exception e) {
+            Toast.makeText(getContext(), "Error loading Series: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        } finally {
+            return seriesNames;
+        }
+    }
+
     private void setupExercisesCards(Long serieId) {
         List<ExerciseModel> exercisesList = exerciseRepository.getAll(serieId);
 
         workoutLayout.removeAllViews();
-        for (ExerciseModel exercise:exercisesList) {
+        while (exercisesList.size() > 0) {
+            ExerciseModel exercise = exercisesList.get(0);
+            exercisesList.remove(0);
             View exerciseCard = LayoutInflater.from(getContext()).inflate(R.layout.workout_card, workoutLayout, false);
             LinearLayout exerciseCardLayout = exerciseCard.findViewById(R.id.exercisesLayout);
             setupExerciseCard(exerciseCardLayout, exercise);
+            if (exercise.getSequence() != 0) {
+                int i = 0;
+                while (exercisesList.size() > i) {
+                    ExerciseModel exerciseSequence = exercisesList.get(i);
+                    if (exercise.getSequence().equals(exerciseSequence.getSequence())) {
+                        exercisesList.remove(i);
+
+                        ImageView chainImage = new ImageView(getContext());
+                        chainImage.setImageResource(R.drawable.ic_link_16);
+                        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                                LinearLayout.LayoutParams.WRAP_CONTENT,
+                                LinearLayout.LayoutParams.WRAP_CONTENT
+                        );
+                        chainImage.setLayoutParams(params);
+                        exerciseCardLayout.addView(chainImage);
+                        setupExerciseCard(exerciseCardLayout, exerciseSequence);
+                        continue;
+                    }
+                    i = i + 1;
+                }
+            }
             workoutLayout.addView(exerciseCard);
         }
     }

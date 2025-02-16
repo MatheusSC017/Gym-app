@@ -56,7 +56,7 @@ public class ExerciseRepository {
 
         int result = sqLiteDatabase.update(ExerciseHelper.TABLE_NAME, contentValues,
                 ExerciseHelper.COLUMN_ID + "=?", new String[]{String.valueOf(exerciseId)});
-
+        sqLiteDatabase.close();
         return result > 0;
     }
 
