@@ -66,18 +66,21 @@ public class WorkoutFragment extends JsonFragment {
     }
 
     public void navigateEditWorkout() {
-        String workout = workoutsSpinner.getSelectedItem().toString();
+        if (workoutsSpinner.getSelectedItem() != null) {
+            String workout = workoutsSpinner.getSelectedItem().toString();
 
-        if (workout == null && workoutDates.containsKey(workout)) return;
+            if (workout == null && workoutDates.containsKey(workout)) return;
 
-        Bundle bundle = new Bundle();
-        bundle.putLong("workout_id", workoutDates.get(workout));
-        bundle.putString("workout_date", workout);
+            Bundle bundle = new Bundle();
+            bundle.putLong("workout_id", workoutDates.get(workout));
+            bundle.putString("workout_date", workout);
 
-        RegisterWorkoutFragment fragment = new RegisterWorkoutFragment();
-        fragment.setArguments(bundle);
+            RegisterWorkoutFragment fragment = new RegisterWorkoutFragment();
+            fragment.setArguments(bundle);
 
-        if (getActivity() instanceof MainActivity) ((MainActivity) getActivity()).loadFragment(fragment);
+            if (getActivity() instanceof MainActivity)
+                ((MainActivity) getActivity()).loadFragment(fragment);
+        }
     }
 
     public void showInsertWorkoutDialog() {
@@ -195,6 +198,9 @@ public class WorkoutFragment extends JsonFragment {
                 // Do nothing
             }
         });
+
+        if (orderedWorkoutDates.size() == 0)
+            setupSeriesSpinner(0L);
     }
 
     private void setupSeriesSpinner(Long workoutId) {
