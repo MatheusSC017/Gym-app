@@ -9,6 +9,7 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.collection.ObjectListKt;
 import androidx.drawerlayout.widget.DrawerLayout;
 
+import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -27,6 +28,7 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
+import com.example.academy.database.DatabaseManager;
 import com.example.academy.ui.base.ConvertFromJson;
 import com.example.academy.ui.finance.FinanceFragment;
 import com.example.academy.ui.history.HistoryFragment;
@@ -44,7 +46,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -52,14 +57,21 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 public class MainActivity extends AppCompatActivity {
-    private static String JSON_FILE = "workouts.json";
+    private final ActivityResultLauncher<Intent> filePickerLauncher =
+        registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+            if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+                Uri selectedFileUri = result.getData().getData();
+                if (selectedFileUri != null) {
+                    uploadData(selectedFileUri);
+                }
+            }
+        });
+
 
     private DrawerLayout drawerLayout;
 
     private NavigationView navigationView;
     private ActionBarDrawerToggle actionBarDrawerToggle;
-
-    private ActivityResultLauncher<Intent> filePickerLauncher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,7 +95,7 @@ public class MainActivity extends AppCompatActivity {
                 } else if (item.getItemId() == R.id.finance) {
                     loadFragment(new FinanceFragment());
                 } else if (item.getItemId() == R.id.upload) {
-                    uploadData();
+                    selectBackupFile();
                 } else if (item.getItemId() == R.id.download) {
                     downloadData();
                 } else {
@@ -93,18 +105,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        filePickerLauncher = registerForActivityResult(
-                new ActivityResultContracts.StartActivityForResult(),
-                result -> {
-                    if (result.getResultCode() == RESULT_OK) {
-                        Intent data = result.getData();
-                        if (data != null && data.getData() != null) {
-                            Uri uri = data.getData();
-                            handleFileUri(uri);
-                        }
-                    }
-                }
-        );
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.drawerLayout), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -150,213 +150,54 @@ public class MainActivity extends AppCompatActivity {
         drawerLayout.closeDrawers();
     }
 
-    private void uploadData() {
-        String state = Environment.getExternalStorageState();
+    public void selectBackupFile() {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("*/*");
 
-        if (Environment.MEDIA_MOUNTED.equals(state)) {
-            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-            intent.addCategory(Intent.CATEGORY_OPENABLE);
-            intent.setType("application/json");
-            try {
-                filePickerLauncher.launch(intent);
-            } catch (Exception e) {
-                Toast.makeText(this, "Erro ao acessar o armazenamento de dados", Toast.LENGTH_LONG).show();
-            }
-        }
+        filePickerLauncher.launch(intent);
     }
 
-    private void handleFileUri(Uri uri) {
+    private void uploadData(Uri fileUri) {
         try {
-            ContentResolver resolver = getContentResolver();
-            InputStream inputStream = resolver.openInputStream(uri);
-            if (inputStream != null) {
-                BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-                StringBuilder jsonBuilder = new StringBuilder();
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    jsonBuilder.append(line);
-                }
-                reader.close();
-                inputStream.close();
+            File dbFile = getApplicationContext().getDatabasePath(DatabaseManager.DATABASE_NAME);
 
-                JSONObject jsonData = new JSONObject(jsonBuilder.toString());
-                Object loadedData = ConvertFromJson.convert(jsonData);
+            InputStream inputStream = getContentResolver().openInputStream(fileUri);
+            OutputStream outputStream = new FileOutputStream(dbFile);
 
-                if (loadedData != null) {
-                    HashMap<String, Object> validDateMap = validateJsonData(loadedData);
-                    JSONObject dataJson = loadInternalJson();
-                    HashMap<String, Object> internalDataJson = (HashMap<String, Object>) ConvertFromJson.convert(dataJson);
-                    internalDataJson.putAll(validDateMap);
-                    saveToInternalStorage(internalDataJson);
-                }
+            byte[] buffer = new byte[1024];
+            int length;
+            while ((length = inputStream.read(buffer)) > 0) {
+                outputStream.write(buffer, 0, length);
             }
+
+            inputStream.close();
+            outputStream.close();
+
+            Toast.makeText(this, "Base de dados restaurada!", Toast.LENGTH_SHORT).show();
         } catch (Exception e) {
-            Toast.makeText(this, "Falha ao ler o arquivo", Toast.LENGTH_LONG).show();
-        }
-    }
-
-    private HashMap<String, Object> validateJsonData(Object loadedData) {
-        if (loadedData instanceof HashMap) {
-            HashMap<String, Object> dataMap = (HashMap<String, Object>) loadedData;
-            HashMap<String, Object> validDateMap = getValidDates(dataMap);
-            Toast.makeText(this, loadedData.toString(), Toast.LENGTH_LONG).show();
-            return validDateMap;
-        }
-        return new HashMap<>();
-    }
-
-    private HashMap<String, Object> getValidDates(HashMap<String, Object> dataMap) {
-        HashMap<String, Object> validDateMap = new HashMap<>();
-        for (String date: dataMap.keySet()) {
-            if (isValidDate(date)) {
-                validDateMap.put(date, getValidSubItems((HashMap<String, Object>) dataMap.get(date)));
-            }
-        }
-        return validDateMap;
-    }
-
-    private boolean isValidDate(String date) {
-        String regex = "\\d{2}/\\d{4}";
-
-        return date != null && date.length() == 7 && Pattern.matches(regex, date);
-    }
-
-    private HashMap<String, Object> getValidSubItems(HashMap<String, Object> subItems) {
-        HashMap<String, Object> validSubItems = new HashMap<>();
-        for (String item: subItems.keySet()) {
-            switch (item) {
-                case "Personal":
-                    validSubItems.put(item, getValidPersonalData((HashMap<String, Object>) subItems.get(item)));
-                    break;
-                case "Series":
-                    validSubItems.put(item, getValidSeries((HashMap<String, Object>) subItems.get(item)));
-                    break;
-            }
-        }
-        return validSubItems;
-    }
-
-    private HashMap<String, Object> getValidSeries(HashMap<String, Object> series) {
-        HashMap<String, Object> validSeries = new HashMap<>();
-        series.forEach((serieName, value) -> {
-            if (value instanceof LinkedHashMap) {
-                LinkedHashMap<String, HashMap> exercises = (LinkedHashMap<String, HashMap>) value;
-                validSeries.put(serieName, getValidExercises(exercises));
-            }
-        });
-        return validSeries;
-    }
-
-    private LinkedHashMap<String, HashMap> getValidExercises(LinkedHashMap<String, HashMap> exercises) {
-        List<String> exerciseInfo = Arrays.asList("Series", "Type", "Quantity", "Muscle", "Sequence", "Observation");
-        LinkedHashMap<String, HashMap> validExercises = new LinkedHashMap<>();
-        exercises.forEach((exerciseName, exerciseData) -> {
-            HashMap<String, Object> validExerciseDate = new HashMap<>();
-            exerciseData.forEach((key, value) -> {
-                if (exerciseInfo.contains((String) key)) {
-                    validExerciseDate.put((String) key, value);
-                }
-            });
-            if (hasRequiredExerciseKeys(validExerciseDate, exerciseInfo.subList(0, 3))) {
-                validExercises.put(exerciseName, exerciseData);
-            }
-
-        });
-        return validExercises;
-    }
-
-    private static boolean hasRequiredExerciseKeys(HashMap<String, Object> exerciseMap, List<String> keys) {
-        for (String key: keys) {
-            if (!exerciseMap.containsKey(key)) return false;
-        }
-        return true;
-    }
-
-    private HashMap<String, Object> getValidPersonalData(HashMap<String, Object> personalData) {
-        HashMap<String, Object> validPersonalData = new HashMap<>();
-        List<String> allowedKeys = Arrays.asList("Weight", "Height", "Lean mass", "Fat weight", "Fat percentage", "IMC", "Folds", "Measures");
-        personalData.forEach((key, value) -> {
-            if (allowedKeys.subList(0, 6).contains(key) &&
-                    value != null &&
-                    (value instanceof Double ||
-                    (value instanceof String) && isNumeric((String) value))) {
-                validPersonalData.put(key, value);
-            }
-            if (allowedKeys.subList(6, 8).contains(key) &&
-                value instanceof HashMap){
-                validPersonalData.put(key, value);
-            }
-        });
-        return validPersonalData;
-    }
-
-    public static boolean isNumeric(String str) {
-        if (str == null || str.isEmpty()) {
-            return false;
-        }
-        try {
-            Double.parseDouble(str);
-            return true;
-        } catch (NumberFormatException e) {
-            return false;
-        }
-    }
-
-    public void saveToInternalStorage(HashMap<String, Object> mapData) {
-        Gson gson = new Gson();
-
-        try (FileOutputStream fos = openFileOutput(JSON_FILE, Context.MODE_PRIVATE)) {
-            String jsonData = gson.toJson(mapData);
-            fos.write(jsonData.toString().getBytes());
-        } catch (Exception e) {
-            Toast.makeText(this, "Error saving file: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            e.printStackTrace();
+            Toast.makeText(this, "Upload falhou: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
 
     private void downloadData() {
-        String state = Environment.getExternalStorageState();
-
-        if (Environment.MEDIA_MOUNTED.equals(state)) {
-            JSONObject dataJson = loadInternalJson();
-            saveExternalJson("treinamento.json", dataJson);
-        }
-    }
-
-    private JSONObject loadInternalJson() {
-        try (FileInputStream fis = this.openFileInput(JSON_FILE)) {
-            int size = fis.available();
-            byte[] buffer = new byte[size];
-            fis.read(buffer);
-            fis.close();
-            String json = new String(buffer, StandardCharsets.UTF_8);
-
-            return new JSONObject(json);
-
-        } catch (Exception e) {
-            Toast.makeText(this, "Error loading JSON: " + e.getMessage(), Toast.LENGTH_LONG).show();
-            return new JSONObject();
-        }
-    }
-
-    private void saveExternalJson(String name, JSONObject dataJson) {
-        File folder = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-        File file = new File(folder, name);
-
-        FileOutputStream fileOutputStream = null;
         try {
-            fileOutputStream = new FileOutputStream(file);
-            fileOutputStream.write(dataJson.toString().getBytes());
-            Toast.makeText(this, "Treinamento baixado", Toast.LENGTH_SHORT).show();
+            LocalDate today = LocalDate.now();
+            File dbFile = getApplicationContext().getDatabasePath(DatabaseManager.DATABASE_NAME);
+            String backupFilePath = "workouts_backup_" + today.getDayOfMonth() + "_" + today.getMonth() + "_" + today.getYear() + ".db";
+            File backupFile = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), backupFilePath);
+
+            FileChannel dbFileChannel = new FileInputStream(dbFile).getChannel();
+            FileChannel backupFileChannel = new FileOutputStream(backupFile).getChannel();
+            backupFileChannel.transferFrom(dbFileChannel, 0, dbFileChannel.size());
+            dbFileChannel.close();
+            backupFileChannel.close();
+
+            Toast.makeText(this, "Backup completo!", Toast.LENGTH_SHORT).show();
         } catch (Exception e) {
             e.printStackTrace();
-        } finally {
-            if (fileOutputStream != null) {
-                try {
-                    fileOutputStream.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
+            Toast.makeText(this, "Backup falhou: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
 
