@@ -111,6 +111,7 @@ public class HistoryFragment extends JsonFragment {
         return view;
     }
 
+    // Review (Load Series)
     private LinkedHashMap<String, HashMap> loadWorkoutData() {
         try {
             HashMap<String, Object> workoutsExtractedMap = loadJsonData(WORKOUTS_FILE);
@@ -151,6 +152,7 @@ public class HistoryFragment extends JsonFragment {
         }
     }
 
+    // Review
     private HashMap<String, Object> loadTrainingHistoryData() {
         try {
             HashMap<String, Object> historyExtractedMap = loadJsonData(HISTORY_FILE);
@@ -161,12 +163,14 @@ public class HistoryFragment extends JsonFragment {
         }
     }
 
+    // Review
     private void setCurrentDate() {
         LocalDate today = LocalDate.now();
         currentTrainingDate = twoDecimalFormatter.format(today.getDayOfMonth()) + "/" + twoDecimalFormatter.format(today.getMonthValue()) + "/" + today.getYear();
         dateTextView.setText(currentTrainingDate);
     }
 
+    // Review
     private void selectTraining() {
         LocalDate currentTrainingLocalDate = LocalDate.parse(currentTrainingDate, dateFormatter);
         LocalDate lastTrainingLocalDate = LocalDate.parse(lastTrainingDate, dateFormatter);
@@ -192,6 +196,7 @@ public class HistoryFragment extends JsonFragment {
         }
     }
 
+    // Review
     private void setExercises(String serie) {
         LinkedHashMap<String, HashMap> exercises = (LinkedHashMap<String, HashMap>) currentWorkout.get(serie);
         exercisesLinearLayout.removeAllViews();
@@ -216,6 +221,7 @@ public class HistoryFragment extends JsonFragment {
         }
     }
 
+    // Review
     private void saveHistory() {
         LocalDate today = LocalDate.now();
         String currentDate = twoDecimalFormatter.format(today.getDayOfMonth()) + "/" + twoDecimalFormatter.format(today.getMonthValue()) + "/" + today.getYear();
