@@ -65,20 +65,20 @@ public class MeasureRepository {
         String query = "SELECT * FROM " + MeasureHelper.TABLE_NAME + " WHERE " + MeasureHelper.COLUMN_PERSONAL_ID + "=?;";
         SQLiteDatabase sqLiteDatabase = databaseManager.getReadableDatabase();
 
-        List<MeasureModel> measureModelList = new ArrayList<>();
+        List<MeasureModel> measureList = new ArrayList<>();
 
         if (sqLiteDatabase != null) {
             Cursor cursor = sqLiteDatabase.rawQuery(query, new String[]{String.valueOf(personalId)});
 
             if (cursor.moveToFirst()) {
                 do {
-                    MeasureModel measureModel = new MeasureModel(cursor.getLong(0), cursor.getString(1),
+                    MeasureModel measure = new MeasureModel(cursor.getLong(0), cursor.getString(1),
                             cursor.getInt(2), cursor.getLong(3));
-                    measureModelList.add(measureModel);
+                    measureList.add(measure);
                 } while (cursor.moveToNext());
             }
         }
 
-        return measureModelList;
+        return measureList;
     }
 }

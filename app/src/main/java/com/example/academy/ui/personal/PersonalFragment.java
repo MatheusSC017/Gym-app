@@ -9,6 +9,8 @@ import android.text.InputType;
 import android.view.*;
 import android.widget.*;
 
+import androidx.fragment.app.Fragment;
+
 import com.example.academy.MainActivity;
 import com.example.academy.R;
 import com.example.academy.database.repositories.FoldRepository;
@@ -17,7 +19,6 @@ import com.example.academy.database.repositories.PersonalRepository;
 import com.example.academy.models.FoldModel;
 import com.example.academy.models.MeasureModel;
 import com.example.academy.models.PersonalModel;
-import com.example.academy.ui.base.JsonFragment;
 import com.example.academy.view.EditTextDate;
 
 import java.text.DecimalFormat;
@@ -25,9 +26,7 @@ import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class PersonalFragment extends JsonFragment {
-    private static String WORKOUTS_FILE = "workouts.json";
-
+public class PersonalFragment extends Fragment {
     private PersonalRepository personalRepository = null;
     private MeasureRepository measureRepository = null;
     private FoldRepository foldRepository = null;
@@ -35,6 +34,12 @@ public class PersonalFragment extends JsonFragment {
     private Map<String, PersonalModel> personalModelMap = new HashMap<>();
 
     private Spinner personalDateSpinner;
+    private TextView imcTextView;
+    private TextView heightTextView;
+    private TextView weightTextView;
+    private TextView fatPercentageTextView;
+    private TextView leanBodyMassTextView;
+    private TextView fatWeightTextView;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -46,6 +51,12 @@ public class PersonalFragment extends JsonFragment {
         foldRepository = new FoldRepository(getContext());
 
         personalDateSpinner = view.findViewById(R.id.personalDateSpinner);
+        imcTextView = view.findViewById(R.id.imcTextView);
+        heightTextView = view.findViewById(R.id.heightTextView);
+        weightTextView = view.findViewById(R.id.weightTextView);
+        fatPercentageTextView = view.findViewById(R.id.fatPercentageTextView);
+        leanBodyMassTextView = view.findViewById(R.id.leanBodyMassTextView);
+        fatWeightTextView = view.findViewById(R.id.fatWeightTextView);
 
         Button insertButton = view.findViewById(R.id.insertButton);
         insertButton.setOnClickListener(event -> showInsertPersonalDialog());
@@ -121,6 +132,15 @@ public class PersonalFragment extends JsonFragment {
                 // Do nothing
             }
         });
+
+        if (personalDates.size() == 0) {
+            imcTextView.setText("IMC: - " );
+            heightTextView.setText("Altura: - ");
+            weightTextView.setText("Peso: - ");
+            fatPercentageTextView.setText("Percentual de Gordura: - ");
+            leanBodyMassTextView.setText("Massa magra: - ");
+            fatWeightTextView.setText("Peso gordo: - ");
+        }
     }
 
     private void showInsertPersonalDialog() {
@@ -196,17 +216,11 @@ public class PersonalFragment extends JsonFragment {
     }
 
     private void setupPersonalData(PersonalModel personalModel) {
-        TextView imcTextView = getView().findViewById(R.id.imcTextView);
         imcTextView.setText("IMC: " + personalModel.getImc());
-        TextView heightTextView = getView().findViewById(R.id.heightTextView);
         heightTextView.setText("Altura: " + personalModel.getHeight() + "m");
-        TextView weightTextView = getView().findViewById(R.id.weightTextView);
         weightTextView.setText("Peso: " + personalModel.getWeight() + "Kg");
-        TextView fatPercentageTextView = getView().findViewById(R.id.fatPercentageTextView);
         fatPercentageTextView.setText("Percentual de Gordura: " + personalModel.getFatPercentage() + "%");
-        TextView leanBodyMassTextView = getView().findViewById(R.id.leanBodyMassTextView);
         leanBodyMassTextView.setText("Massa magra: " + personalModel.getLeanMass() + "Kg");
-        TextView fatWeightTextView = getView().findViewById(R.id.fatWeightTextView);
         fatWeightTextView.setText("Peso gordo: " + personalModel.getFatWeight() + "Kg");
 
         LinearLayout measurementLayout = getView().findViewById(R.id.measurementLayout);

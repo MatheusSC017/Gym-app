@@ -8,6 +8,8 @@ import android.text.InputType;
 import android.view.*;
 import android.widget.*;
 
+import androidx.fragment.app.Fragment;
+
 import com.example.academy.MainActivity;
 import com.example.academy.R;
 import com.example.academy.database.repositories.ExerciseRepository;
@@ -16,7 +18,6 @@ import com.example.academy.database.repositories.WorkoutRepository;
 import com.example.academy.models.ExerciseModel;
 import com.example.academy.models.SerieModel;
 import com.example.academy.models.WorkoutModel;
-import com.example.academy.ui.base.JsonFragment;
 import com.example.academy.utils.Utils;
 import com.example.academy.view.EditTextDate;
 
@@ -26,7 +27,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 
-public class WorkoutFragment extends JsonFragment {
+public class WorkoutFragment extends Fragment {
     WorkoutRepository workoutRepository = null;
     SerieRepository serieRepository = null;
     ExerciseRepository exerciseRepository = null;
@@ -66,18 +67,21 @@ public class WorkoutFragment extends JsonFragment {
     }
 
     public void navigateEditWorkout() {
-        String workout = workoutsSpinner.getSelectedItem().toString();
+        if (workoutsSpinner.getSelectedItem() != null) {
+            String workout = workoutsSpinner.getSelectedItem().toString();
 
-        if (workout == null && workoutDates.containsKey(workout)) return;
+            if (workout == null && workoutDates.containsKey(workout)) return;
 
-        Bundle bundle = new Bundle();
-        bundle.putLong("workout_id", workoutDates.get(workout));
-        bundle.putString("workout_date", workout);
+            Bundle bundle = new Bundle();
+            bundle.putLong("workout_id", workoutDates.get(workout));
+            bundle.putString("workout_date", workout);
 
-        RegisterWorkoutFragment fragment = new RegisterWorkoutFragment();
-        fragment.setArguments(bundle);
+            RegisterWorkoutFragment fragment = new RegisterWorkoutFragment();
+            fragment.setArguments(bundle);
 
-        if (getActivity() instanceof MainActivity) ((MainActivity) getActivity()).loadFragment(fragment);
+            if (getActivity() instanceof MainActivity)
+                ((MainActivity) getActivity()).loadFragment(fragment);
+        }
     }
 
     public void showInsertWorkoutDialog() {
@@ -195,6 +199,9 @@ public class WorkoutFragment extends JsonFragment {
                 // Do nothing
             }
         });
+
+        if (orderedWorkoutDates.size() == 0)
+            setupSeriesSpinner(0L);
     }
 
     private void setupSeriesSpinner(Long workoutId) {

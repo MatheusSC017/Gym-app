@@ -7,8 +7,8 @@ import android.database.sqlite.SQLiteOpenHelper;
 import androidx.annotation.Nullable;
 
 public class DatabaseManager extends SQLiteOpenHelper {
-    private static final String DATABASE_NAME = "Academy.db";
-    private static final int DATABASE_VERSION = 3;
+    public static final String DATABASE_NAME = "Academy.db";
+    public static final int DATABASE_VERSION = 4;
 
     public DatabaseManager(@Nullable Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -22,6 +22,7 @@ public class DatabaseManager extends SQLiteOpenHelper {
         sqLiteDatabase.execSQL(PersonalHelper.CREATE_TABLE);
         sqLiteDatabase.execSQL(FoldHelper.CREATE_TABLE);
         sqLiteDatabase.execSQL(MeasureHelper.CREATE_TABLE);
+        sqLiteDatabase.execSQL(HistoryHelper.CREATE_TABLE);
     }
 
     @Override
@@ -32,6 +33,7 @@ public class DatabaseManager extends SQLiteOpenHelper {
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + PersonalHelper.TABLE_NAME);
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + FoldHelper.TABLE_NAME);
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + MeasureHelper.TABLE_NAME);
+        sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + HistoryHelper.TABLE_NAME);
         onCreate(sqLiteDatabase);
     }
 
@@ -43,6 +45,7 @@ public class DatabaseManager extends SQLiteOpenHelper {
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + PersonalHelper.TABLE_NAME);
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + FoldHelper.TABLE_NAME);
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + MeasureHelper.TABLE_NAME);
+        sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + HistoryHelper.TABLE_NAME);
         onCreate(sqLiteDatabase);
     }
 }
