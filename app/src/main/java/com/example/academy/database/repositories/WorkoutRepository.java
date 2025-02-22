@@ -51,8 +51,8 @@ public class WorkoutRepository {
 
             if (cursor.moveToFirst()) {
                 do {
-                    WorkoutModel workoutMap = new WorkoutModel(cursor.getLong(0), cursor.getString(1));
-                    workoutsList.add(workoutMap);
+                    WorkoutModel workout = new WorkoutModel(cursor.getLong(0), cursor.getString(1));
+                    workoutsList.add(workout);
                 } while (cursor.moveToNext());
             }
 

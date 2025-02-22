@@ -81,21 +81,21 @@ public class PersonalRepository {
         String query = "SELECT * FROM " + PersonalHelper.TABLE_NAME;
         SQLiteDatabase sqLiteDatabase = databaseManager.getReadableDatabase();
 
-        List<PersonalModel> personalModelList = new ArrayList<>();
+        List<PersonalModel> personalList = new ArrayList<>();
 
         if (sqLiteDatabase != null) {
             Cursor cursor = sqLiteDatabase.rawQuery(query, null);
 
             if (cursor.moveToFirst()) {
                 do {
-                    PersonalModel personalModel = new PersonalModel(cursor.getLong(0), cursor.getString(1),
+                    PersonalModel personal = new PersonalModel(cursor.getLong(0), cursor.getString(1),
                             cursor.getFloat(2), cursor.getFloat(3), cursor.getFloat(4),
                             cursor.getFloat(5), cursor.getFloat(6), cursor.getFloat(7));
-                    personalModelList.add(personalModel);
+                    personalList.add(personal);
                 } while (cursor.moveToNext());
             }
         }
 
-        return personalModelList;
+        return personalList;
     }
 }

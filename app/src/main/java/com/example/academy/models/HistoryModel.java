@@ -1,9 +1,15 @@
 package com.example.academy.models;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 public class HistoryModel {
     private Long id;
-    private String date;
+    private Date date;
     private Long serieId;
+
+    private SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
 
     public HistoryModel(Long id, String date, Long serieId) {
         setId(id);
@@ -19,12 +25,20 @@ public class HistoryModel {
         this.id = id;
     }
 
-    public String getDate() {
+    public Date getDate() {
         return date;
     }
 
+    public String getDateFormatted() {
+        return formatter.format(date);
+    }
+
     public void setDate(String date) {
-        this.date = date;
+        try {
+            this.date = formatter.parse(date);
+        } catch (ParseException e) {
+            // Do nothing
+        }
     }
 
     public Long getSerieId() {

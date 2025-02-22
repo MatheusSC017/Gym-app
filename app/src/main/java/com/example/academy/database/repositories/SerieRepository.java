@@ -52,8 +52,8 @@ public class SerieRepository {
 
             if (cursor.moveToFirst()) {
                 do {
-                    SerieModel serieMap = new SerieModel(cursor.getLong(0), cursor.getString(1), cursor.getLong(2));
-                    seriesList.add(serieMap);
+                    SerieModel serie = new SerieModel(cursor.getLong(0), cursor.getString(1), cursor.getLong(2));
+                    seriesList.add(serie);
                 } while (cursor.moveToNext());
             }
 

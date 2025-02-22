@@ -14,6 +14,14 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 
 import com.example.academy.R;
+import com.example.academy.database.repositories.ExerciseRepository;
+import com.example.academy.database.repositories.HistoryRepository;
+import com.example.academy.database.repositories.SerieRepository;
+import com.example.academy.database.repositories.WorkoutRepository;
+import com.example.academy.models.ExerciseModel;
+import com.example.academy.models.HistoryModel;
+import com.example.academy.models.SerieModel;
+import com.example.academy.models.WorkoutModel;
 import com.example.academy.ui.base.JsonFragment;
 
 import java.text.DecimalFormat;
@@ -24,72 +32,73 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class HistoryFragment extends JsonFragment {
-    private static String WORKOUTS_FILE = "workouts.json";
-    private static String HISTORY_FILE = "history.json";
-    private LinkedHashMap<String, HashMap> currentWorkout;
-    private HashMap<String, Object> trainingHistory;
+    private HistoryRepository historyRepository;
+    private WorkoutRepository workoutRepository;
+    private SerieRepository serieRepository;
+    private ExerciseRepository exerciseRepository;
+
+    private List<SerieModel>  series;
+    private List<HistoryModel> trainingHistory;
 
     DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     DecimalFormat twoDecimalFormatter = new DecimalFormat("00");
 
-    private String lastTrainingDate;
-    private String currentTrainingDate;
-    private String currentSerieId;
+    private SerieModel currentSerie;
 
     private TextView dateTextView;
     private TextView serieTextView;
-    private Button selectDateButton;
     private CalendarView trainingCalendarView;
     private LinearLayout exercisesLinearLayout;
-    private Button saveButton;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_history, container, false);
 
-        currentWorkout = loadWorkoutData();
-        trainingHistory = loadTrainingHistoryData();
+        historyRepository = new HistoryRepository(getContext());
+        workoutRepository = new WorkoutRepository(getContext());
+        serieRepository = new SerieRepository(getContext());
+        exerciseRepository = new ExerciseRepository(getContext());
 
-        List<String> seriesIds = currentWorkout.keySet().stream().collect(Collectors.toList());
-        currentSerieId = String.valueOf(seriesIds.get(0));
-        if (trainingHistory.size() != 0) {
-            List<String> historyDates = new ArrayList<>(trainingHistory.keySet());
 
-            historyDates.sort(Comparator.comparing(key -> LocalDate.parse(key, dateFormatter)));
+        exercisesLinearLayout = view.findViewById(R.id.exercisesLinearLayout);
 
-            lastTrainingDate = historyDates.get(historyDates.size() - 1);
-            HashMap<String, Object> lastTrainingInfo = (HashMap<String, Object>) trainingHistory.get(lastTrainingDate);
-            if (lastTrainingInfo.containsKey("SerieName")) {
-                String lastSerie = (String) lastTrainingInfo.get("SerieName");
+        serieTextView = view.findViewById(R.id.serieTextView);
 
-                LocalDate today = LocalDate.now();
-                String currentDate = twoDecimalFormatter.format(today.getDayOfMonth()) + "/" + twoDecimalFormatter.format(today.getMonthValue()) + "/" + today.getYear();
-                if (lastTrainingDate.equals(currentDate)) {
-                    currentSerieId = lastSerie;
-                } else {
-                    int lastSerieIndex = seriesIds.indexOf(lastSerie);
-                    if (lastSerieIndex >= 0) {
-                        currentSerieId = String.valueOf(seriesIds.get((lastSerieIndex < seriesIds.size()) ? (lastSerieIndex + 1) : 0));
+        dateTextView = view.findViewById(R.id.dateTextView);
+        setCurrentDate();
+
+        series = getWorkoutSeries();
+        if (series.isEmpty()) {
+            serieTextView.setText("Não há Series Cadastradas");
+            return view;
+        }
+        trainingHistory = getAllTrainingHistory();
+
+        if (trainingHistory.isEmpty()) {
+            currentSerie = series.get(0);
+        } else {
+            HistoryModel history = trainingHistory.get(0);
+
+            for (int i = 0; i < series.size(); i++) {
+                if (history.getSerieId().equals(series.get(i).getId())) {
+                    if (history.getDateFormatted().equals(dateTextView.getText().toString())) {
+                        currentSerie = series.get(i);
+                    } else {
+                        currentSerie = series.get(i + 1);
                     }
+                    break;
                 }
             }
 
         }
 
-        exercisesLinearLayout = view.findViewById(R.id.exercisesLinearLayout);
+        serieTextView.setText(currentSerie.getName());
+        setExercises(currentSerie.getId());
 
-        dateTextView = view.findViewById(R.id.dateTextView);
-        setCurrentDate();
-
-        serieTextView = view.findViewById(R.id.serieTextView);
-        serieTextView.setText(currentSerieId);
-        setExercises(currentSerieId);
-
-        selectDateButton = view.findViewById(R.id.selectDateButton);
+        Button selectDateButton = view.findViewById(R.id.selectDateButton);
         selectDateButton.setOnClickListener(event -> trainingCalendarView.setVisibility(View.VISIBLE));
 
         trainingCalendarView = view.findViewById(R.id.trainingCalendarView);
@@ -97,111 +106,109 @@ public class HistoryFragment extends JsonFragment {
         trainingCalendarView.setOnDateChangeListener(new CalendarView.OnDateChangeListener() {
             @Override
             public void onSelectedDayChange(@NonNull CalendarView calendarView, int year, int month, int day) {
-                currentTrainingDate = twoDecimalFormatter.format(day) + "/" + twoDecimalFormatter.format(month + 1) + "/" + year;
-                selectTraining();
+                String currentTrainingDate = twoDecimalFormatter.format(day) + "/" + twoDecimalFormatter.format(month + 1) + "/" + year;
+                selectTraining(currentTrainingDate);
 
                 dateTextView.setText(currentTrainingDate);
                 trainingCalendarView.setVisibility(View.GONE);
             }
         });
 
-        saveButton = view.findViewById(R.id.saveButton);
+        Button saveButton = view.findViewById(R.id.saveButton);
         saveButton.setOnClickListener(event -> saveHistory());
 
         return view;
     }
 
-    // Review (Load Series)
-    private LinkedHashMap<String, HashMap> loadWorkoutData() {
+    private List<SerieModel> getWorkoutSeries() {
         try {
-            HashMap<String, Object> workoutsExtractedMap = loadJsonData(WORKOUTS_FILE);
-            if (workoutsExtractedMap != null) {
-                List<String> workoutsIds = workoutsExtractedMap.keySet().stream().collect(Collectors.toList());
+            List<WorkoutModel> workoutsList = workoutRepository.getAll();
+            if (workoutsList.isEmpty())
+                return new ArrayList<>();
 
-                Comparator<String> comparatorWorkoutsIds = new Comparator<String>() {
-                    @Override
-                    public int compare(String o1, String o2) {
-                        String[] parts1 = o1.split("/");
-                        String[] parts2 = o2.split("/");
+            Comparator<WorkoutModel> comparatorWorkoutDate = new Comparator<WorkoutModel>() {
+                @Override
+                public int compare(WorkoutModel o1, WorkoutModel o2) {
+                    String[] parts1 = o1.getDate().split("/");
+                    String[] parts2 = o2.getDate().split("/");
 
-                        int year1 = Integer.parseInt(parts1[1]);
-                        int month1 = Integer.parseInt(parts1[0]);
-                        int year2 = Integer.parseInt(parts2[1]);
-                        int month2 = Integer.parseInt(parts2[0]);
+                    int year1 = Integer.parseInt(parts1[1]);
+                    int month1 = Integer.parseInt(parts1[0]);
+                    int year2 = Integer.parseInt(parts2[1]);
+                    int month2 = Integer.parseInt(parts2[0]);
 
-                        if (year1 != year2) {
-                            return Integer.compare(year2, year1); // Descending order by year
-                        } else {
-                            return Integer.compare(month2, month1); // Descending order by month
-                        }
-                    }
-                };
-                workoutsIds.sort(comparatorWorkoutsIds);
-                for (int i=0; i < workoutsIds.size(); i++) {
-                    HashMap<String, HashMap> registerData = (HashMap<String, HashMap>) workoutsExtractedMap.get(workoutsIds.get(i));
-
-                    if (registerData.containsKey("Series")) {
-                        return (LinkedHashMap<String, HashMap>) registerData.get("Series");
+                    if (year1 != year2) {
+                        return Integer.compare(year2, year1);
+                    } else {
+                        return Integer.compare(month2, month1);
                     }
                 }
-            }
-            return new LinkedHashMap<>();
+            };
+
+            workoutsList.sort(comparatorWorkoutDate);
+            Long workoutId = workoutsList.get(0).getId();
+            return serieRepository.getAll(workoutId);
         } catch (Exception e) {
             Toast.makeText(requireContext(), "Error extracting workouts: " + e.getMessage(), Toast.LENGTH_LONG).show();
-            return new LinkedHashMap<>();
+            return new ArrayList<>();
         }
     }
 
-    // Review
-    private HashMap<String, Object> loadTrainingHistoryData() {
-        try {
-            HashMap<String, Object> historyExtractedMap = loadJsonData(HISTORY_FILE);
-            return historyExtractedMap;
-        } catch (Exception e) {
-            Toast.makeText(requireContext(), "Error extracting history: " + e.getMessage(), Toast.LENGTH_LONG).show();
-            return new HashMap<>();
-        }
+    // Review (It's necessary to get All training data or only the last?
+    private List<HistoryModel> getAllTrainingHistory() {
+        List<HistoryModel> trainingHistory = historyRepository.getAll();
+
+        Comparator<HistoryModel> comparatorTrainingHistoryDate = new Comparator<HistoryModel>() {
+            @Override
+            public int compare(HistoryModel o1, HistoryModel o2) {
+                return o1.getDate().compareTo(o2.getDate());
+            }
+        };
+
+        trainingHistory.sort(comparatorTrainingHistoryDate);
+        return trainingHistory;
     }
 
-    // Review
     private void setCurrentDate() {
         LocalDate today = LocalDate.now();
-        currentTrainingDate = twoDecimalFormatter.format(today.getDayOfMonth()) + "/" + twoDecimalFormatter.format(today.getMonthValue()) + "/" + today.getYear();
+        String currentTrainingDate = twoDecimalFormatter.format(today.getDayOfMonth()) + "/" + twoDecimalFormatter.format(today.getMonthValue()) + "/" + today.getYear();
         dateTextView.setText(currentTrainingDate);
     }
 
-    // Review
-    private void selectTraining() {
-        LocalDate currentTrainingLocalDate = LocalDate.parse(currentTrainingDate, dateFormatter);
-        LocalDate lastTrainingLocalDate = LocalDate.parse(lastTrainingDate, dateFormatter);
-        if (currentTrainingLocalDate.compareTo(lastTrainingLocalDate) <= 0) {
-            HashMap<String, Object> serieInfo = (HashMap<String, Object>) trainingHistory.get(currentTrainingDate);
-            if (serieInfo != null) {
-                String serieName = (String) serieInfo.get("SerieName");
-                serieTextView.setText(serieName != null ? serieName : "Não houve treino nesta data.");
-                setExercises(serieName);
-            } else {
-                serieTextView.setText("Não houve treino nesta data.");
-                exercisesLinearLayout.removeAllViews();
+    private void selectTraining(String currentTrainingDate) {
+        HistoryModel history = historyRepository.getByDate(currentTrainingDate);
+        LocalDate today = LocalDate.now();
+        String todayDate = twoDecimalFormatter.format(today.getDayOfMonth()) + "/" + twoDecimalFormatter.format(today.getMonthValue()) + "/" + today.getYear();
+
+
+        exercisesLinearLayout.removeAllViews();
+        if (history != null) {
+            SerieModel serie = getSerie(history.getSerieId());
+            if (serie != null) {
+                serieTextView.setText(serie.getName());
+                setExercises(serie.getId());
             }
-            saveButton.setVisibility(View.GONE);
-        } else if (currentTrainingLocalDate.isEqual(LocalDate.now())) {
-            serieTextView.setText(currentSerieId);
-            setExercises(currentSerieId);
-            saveButton.setVisibility(View.VISIBLE);
+        } else if (currentTrainingDate.equals(todayDate)) {
+            serieTextView.setText(currentSerie.getName());
+            setExercises(currentSerie.getId());
         } else {
-            saveButton.setVisibility(View.GONE);
-            serieTextView.setText("Não houve treino nesta data.");
-            exercisesLinearLayout.removeAllViews();
+            serieTextView.setText("Treinamento não encontrado");
         }
     }
 
-    // Review
-    private void setExercises(String serie) {
-        LinkedHashMap<String, HashMap> exercises = (LinkedHashMap<String, HashMap>) currentWorkout.get(serie);
-        exercisesLinearLayout.removeAllViews();
-        if (exercises != null) {
-            exercises.forEach((exerciseName, exerciseData) -> {
+    private SerieModel getSerie(Long serieId) {
+        for (SerieModel serie: series) {
+            if (serie.getId().equals(serieId)) {
+                return serie;
+            }
+        }
+        return null;
+    }
+
+    private void setExercises(Long serieId) {
+        List<ExerciseModel> exercises = exerciseRepository.getAll(serieId);
+        if (!exercises.isEmpty()) {
+            exercises.forEach((ExerciseModel exercise) -> {
                 View exerciseCard = LayoutInflater.from(getContext()).inflate(R.layout.exercise_layout, exercisesLinearLayout, false);
 
                 TextView exerciseTextView = exerciseCard.findViewById(R.id.exerciseTextView);
@@ -209,30 +216,24 @@ public class HistoryFragment extends JsonFragment {
                 TextView seriesTextView = exerciseCard.findViewById(R.id.seriesTextView);
                 TextView repetitionsTextView = exerciseCard.findViewById(R.id.repetitionsTextView);
 
-                exerciseTextView.setText(exerciseName);
-                muscleTextView.setText(exerciseData.get("Muscle").toString());
+                exerciseTextView.setText(exercise.getName());
+                muscleTextView.setText(exercise.getMuscle());
 
-                String series = exerciseData.getOrDefault("Series", "1").toString();
+                String series = exercise.getSeriesNumber().toString();
                 if (!series.equals("1")) seriesTextView.setText(series + " x");
 
-                repetitionsTextView.setText(exerciseData.getOrDefault("Quantity", "").toString() + " " + exerciseData.getOrDefault("Type", "").toString());
+                repetitionsTextView.setText(exercise.getQuantity() + " " + exercise.getMeasure());
                 exercisesLinearLayout.addView(exerciseCard);
             });
         }
     }
 
-    // Review
     private void saveHistory() {
         LocalDate today = LocalDate.now();
         String currentDate = twoDecimalFormatter.format(today.getDayOfMonth()) + "/" + twoDecimalFormatter.format(today.getMonthValue()) + "/" + today.getYear();
 
-        if (currentTrainingDate.equals(currentDate)) {
-            HashMap<String, Object> trainingData = new HashMap<>();
-            trainingData.put("SerieName", currentSerieId);
-
-            trainingHistory.put(currentDate, trainingData);
-
-            saveToInternalStorage(trainingHistory, HISTORY_FILE);
+        if (dateTextView.getText().toString().equals(currentDate)) {
+            historyRepository.add(currentDate, currentSerie.getId());
             Toast.makeText(getContext(), "Treino salvo", Toast.LENGTH_LONG).show();
         }
     }

@@ -67,21 +67,21 @@ public class FoldRepository {
         String query = "SELECT * FROM " + FoldHelper.TABLE_NAME + " WHERE " + FoldHelper.COLUMN_PERSONAL_ID + "=?;";
         SQLiteDatabase sqLiteDatabase = databaseManager.getReadableDatabase();
 
-        List<FoldModel> foldModelList = new ArrayList<>();
+        List<FoldModel> foldList = new ArrayList<>();
 
         if (sqLiteDatabase != null) {
             Cursor cursor = sqLiteDatabase.rawQuery(query,  new String[]{String.valueOf(personalId)});
 
             if (cursor.moveToFirst()) {
                 do {
-                    FoldModel foldModel = new FoldModel(cursor.getLong(0), cursor.getString(1),
+                    FoldModel fold = new FoldModel(cursor.getLong(0), cursor.getString(1),
                             cursor.getInt(2), cursor.getLong(3));
-                    foldModelList.add(foldModel);
+                    foldList.add(fold);
                 } while (cursor.moveToNext());
             }
         }
 
-        return foldModelList;
+        return foldList;
     }
 
 }
