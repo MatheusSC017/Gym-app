@@ -6,7 +6,6 @@ import com.example.academy.database.repositories.ExerciseRepository;
 import com.example.academy.database.repositories.SerieRepository;
 import com.example.academy.models.ExerciseModel;
 import com.example.academy.models.SerieModel;
-import com.example.academy.ui.base.JsonFragment;
 import com.example.academy.utils.Utils;
 
 import android.app.AlertDialog;
@@ -17,10 +16,12 @@ import android.text.InputType;
 import android.view.*;
 import android.widget.*;
 
+import androidx.fragment.app.Fragment;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class RegisterWorkoutFragment extends JsonFragment {
+public class RegisterWorkoutFragment extends Fragment {
     private static List<String> TYPES_OF_MEASURES = List.of("Repetições", "Segundos", "Minutos", "Horas", "Ciclos");
     private static Integer SEQUENCE_AVAILABLE_SELECTION = 9;
 

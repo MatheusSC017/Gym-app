@@ -7,6 +7,8 @@ import android.text.InputType;
 import android.view.*;
 import android.widget.*;
 
+import androidx.fragment.app.Fragment;
+
 import com.example.academy.MainActivity;
 import com.example.academy.R;
 import com.example.academy.database.repositories.FoldRepository;
@@ -15,12 +17,11 @@ import com.example.academy.database.repositories.PersonalRepository;
 import com.example.academy.models.FoldModel;
 import com.example.academy.models.MeasureModel;
 import com.example.academy.models.PersonalModel;
-import com.example.academy.ui.base.JsonFragment;
 import com.example.academy.ui.workout.WorkoutFragment;
 
 import java.util.*;
 
-public class RegisterPersonalFragment extends JsonFragment {
+public class RegisterPersonalFragment extends Fragment {
     private Long personalId;
 
     private PersonalRepository personalRepository = null;

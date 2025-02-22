@@ -8,6 +8,8 @@ import android.text.InputType;
 import android.view.*;
 import android.widget.*;
 
+import androidx.fragment.app.Fragment;
+
 import com.example.academy.MainActivity;
 import com.example.academy.R;
 import com.example.academy.database.repositories.ExerciseRepository;
@@ -16,7 +18,6 @@ import com.example.academy.database.repositories.WorkoutRepository;
 import com.example.academy.models.ExerciseModel;
 import com.example.academy.models.SerieModel;
 import com.example.academy.models.WorkoutModel;
-import com.example.academy.ui.base.JsonFragment;
 import com.example.academy.utils.Utils;
 import com.example.academy.view.EditTextDate;
 
@@ -26,7 +27,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 
-public class WorkoutFragment extends JsonFragment {
+public class WorkoutFragment extends Fragment {
     WorkoutRepository workoutRepository = null;
     SerieRepository serieRepository = null;
     ExerciseRepository exerciseRepository = null;

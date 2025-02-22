@@ -12,6 +12,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.fragment.app.Fragment;
 
 import com.example.academy.R;
 import com.example.academy.database.repositories.ExerciseRepository;
@@ -22,7 +23,6 @@ import com.example.academy.models.ExerciseModel;
 import com.example.academy.models.HistoryModel;
 import com.example.academy.models.SerieModel;
 import com.example.academy.models.WorkoutModel;
-import com.example.academy.ui.base.JsonFragment;
 
 import java.text.DecimalFormat;
 import java.time.LocalDate;
@@ -33,7 +33,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-public class HistoryFragment extends JsonFragment {
+public class HistoryFragment extends Fragment {
     private HistoryRepository historyRepository;
     private WorkoutRepository workoutRepository;
     private SerieRepository serieRepository;

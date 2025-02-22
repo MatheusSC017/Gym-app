@@ -29,32 +29,19 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.example.academy.database.DatabaseManager;
-import com.example.academy.ui.base.ConvertFromJson;
 import com.example.academy.ui.finance.FinanceFragment;
 import com.example.academy.ui.history.HistoryFragment;
 import com.example.academy.ui.personal.PersonalFragment;
 import com.example.academy.ui.workout.WorkoutFragment;
 import com.google.android.material.navigation.NavigationView;
-import com.google.gson.Gson;
 
-import org.json.JSONObject;
-
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.nio.channels.FileChannel;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.regex.Pattern;
 
 public class MainActivity extends AppCompatActivity {
     private final ActivityResultLauncher<Intent> filePickerLauncher =

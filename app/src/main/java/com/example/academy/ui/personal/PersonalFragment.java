@@ -9,6 +9,8 @@ import android.text.InputType;
 import android.view.*;
 import android.widget.*;
 
+import androidx.fragment.app.Fragment;
+
 import com.example.academy.MainActivity;
 import com.example.academy.R;
 import com.example.academy.database.repositories.FoldRepository;
@@ -17,7 +19,6 @@ import com.example.academy.database.repositories.PersonalRepository;
 import com.example.academy.models.FoldModel;
 import com.example.academy.models.MeasureModel;
 import com.example.academy.models.PersonalModel;
-import com.example.academy.ui.base.JsonFragment;
 import com.example.academy.view.EditTextDate;
 
 import java.text.DecimalFormat;
@@ -25,9 +26,7 @@ import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class PersonalFragment extends JsonFragment {
-    private static String WORKOUTS_FILE = "workouts.json";
-
+public class PersonalFragment extends Fragment {
     private PersonalRepository personalRepository = null;
     private MeasureRepository measureRepository = null;
     private FoldRepository foldRepository = null;
