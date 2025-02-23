@@ -10,6 +10,7 @@ public class ExerciseHelper {
     public static final String COLUMN_MUSCLE = "exercise_muscle";
     public static final String COLUMN_SEQUENCE = "exercise_sequence";
     public static final String COLUMN_OBSERVATION = "exercise_observation";
+    public static final String COLUMN_WEIGHT = "exercise_weight";
     public static final String COLUMN_SERIE_ID = "exercise_serie_id";
 
     public static final String CREATE_TABLE = "CREATE TABLE " + TABLE_NAME +
@@ -21,6 +22,7 @@ public class ExerciseHelper {
             COLUMN_MUSCLE + " TEXT," +
             COLUMN_SEQUENCE + " INTEGER," +
             COLUMN_OBSERVATION + " TEXT," +
+            COLUMN_WEIGHT + " INTEGER, " +
             COLUMN_SERIE_ID + " INTEGER NOT NULL," +
             "FOREIGN KEY (" + COLUMN_SERIE_ID + ") " +
             "REFERENCES " + SerieHelper.TABLE_NAME + "(" + SerieHelper.COLUMN_ID + "));";

@@ -210,6 +210,7 @@ public class RegisterWorkoutFragment extends Fragment {
         Spinner typeSpinner = dialogView.findViewById(R.id.typeSpinner);
         EditText quantityEditText = dialogView.findViewById(R.id.quantityEditText);
         EditText muscleEditText = dialogView.findViewById(R.id.muscleEditText);
+        EditText weightEditText = dialogView.findViewById(R.id.weightEditText);
         EditText observationEditText = dialogView.findViewById(R.id.observationEditText);
 
         if (exerciseEditText.getText().length() == 0 ||
@@ -222,7 +223,8 @@ public class RegisterWorkoutFragment extends Fragment {
 
         ExerciseModel exercise = new ExerciseModel(null, exerciseEditText.getText().toString(), Integer.valueOf(seriesEditText.getText().toString()),
                 typeSpinner.getSelectedItem().toString(), Integer.valueOf(quantityEditText.getText().toString()),
-                muscleEditText.getText().toString(), 0, observationEditText.getText().toString(), serieId);
+                muscleEditText.getText().toString(), 0, observationEditText.getText().toString(),
+                Integer.valueOf(weightEditText.getText().toString()), serieId);
 
         exercise = exerciseRepository.add(exercise);
 
@@ -245,6 +247,7 @@ public class RegisterWorkoutFragment extends Fragment {
         TextView muscleTextView = contentInflated.findViewById(R.id.muscleTextView);
         TextView seriesTextView = contentInflated.findViewById(R.id.seriesTextView);
         TextView repetitionsTextView = contentInflated.findViewById(R.id.repetitionsTextView);
+        TextView weightTextView = contentInflated.findViewById(R.id.weightTextView);
         Button editExerciseButton = exerciseCard.findViewById(R.id.editExerciseButton);
         Button removeExerciseButton = exerciseCard.findViewById(R.id.removeExerciseButton);
 
@@ -253,8 +256,9 @@ public class RegisterWorkoutFragment extends Fragment {
 
         exerciseTextView.setText(exercise.getName());
         muscleTextView.setText(exercise.getMuscle());
-        if (exercise.getSeriesNumber() > 1) seriesTextView.setText(exercise.getSeriesNumber() + " x");
+        seriesTextView.setText(exercise.getSeriesNumber() > 1 ? exercise.getSeriesNumber() + " x" : "");
         repetitionsTextView.setText(exercise.getQuantity() + " " + exercise.getMeasure());
+        weightTextView.setText(exercise.getWeight() != 0 ? exercise.getWeight() + " Kg" : "");
 
         layout.addView(exerciseCard);
     }
@@ -279,6 +283,8 @@ public class RegisterWorkoutFragment extends Fragment {
         quantityEditText.setText(String.valueOf(exerciseModel.getQuantity()));
         EditText muscleEditText = dialogView.findViewById(R.id.muscleEditText);
         muscleEditText.setText(exerciseModel.getMuscle());
+        EditText weightEditText = dialogView.findViewById(R.id.weightEditText);
+        weightEditText.setText(String.valueOf(exerciseModel.getWeight()));
         EditText observationEditText = dialogView.findViewById(R.id.observationEditText);
         observationEditText.setText(exerciseModel.getObservation());
 
@@ -296,6 +302,7 @@ public class RegisterWorkoutFragment extends Fragment {
             exerciseModel.setMeasure(typeSpinner.getSelectedItem().toString());
             exerciseModel.setQuantity(Integer.valueOf(quantityEditText.getText().toString()));
             exerciseModel.setMuscle(muscleEditText.getText().toString());
+            exerciseModel.setWeight(Integer.valueOf(weightEditText.getText().toString()));
             exerciseModel.setObservation(observationEditText.getText().toString());
 
             editExercise(oldExerciseName, exerciseModel);
@@ -317,11 +324,13 @@ public class RegisterWorkoutFragment extends Fragment {
                 TextView seriesTextView = exerciseCard.findViewById(R.id.seriesTextView);
                 TextView repetitionsTextView = exerciseCard.findViewById(R.id.repetitionsTextView);
                 TextView muscleTextView = exerciseCard.findViewById(R.id.muscleTextView);
+                TextView weightEditText = exerciseCard.findViewById(R.id.weightTextView);
 
                 exerciseTextView.setText(exerciseModel.getName());
                 muscleTextView.setText(exerciseModel.getMuscle());
                 seriesTextView.setText(exerciseModel.getSeriesNumber() + " x");
                 repetitionsTextView.setText(exerciseModel.getQuantity() + " " + exerciseModel.getMeasure());
+                weightEditText.setText(exerciseModel.getWeight() != 0 ? exerciseModel.getWeight() + " Kg" : "");
 
                 break;
             }

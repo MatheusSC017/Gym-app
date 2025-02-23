@@ -26,11 +26,8 @@ import com.example.academy.models.WorkoutModel;
 
 import java.text.DecimalFormat;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 
 public class HistoryFragment extends Fragment {
@@ -40,9 +37,8 @@ public class HistoryFragment extends Fragment {
     private ExerciseRepository exerciseRepository;
 
     private List<SerieModel>  series;
-    private List<HistoryModel> trainingHistory;
+    private HistoryModel lastTrainingHistory;
 
-    DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     DecimalFormat twoDecimalFormatter = new DecimalFormat("00");
 
     private SerieModel currentSerie;
@@ -62,7 +58,6 @@ public class HistoryFragment extends Fragment {
         serieRepository = new SerieRepository(getContext());
         exerciseRepository = new ExerciseRepository(getContext());
 
-
         exercisesLinearLayout = view.findViewById(R.id.exercisesLinearLayout);
 
         serieTextView = view.findViewById(R.id.serieTextView);
@@ -75,16 +70,14 @@ public class HistoryFragment extends Fragment {
             serieTextView.setText("Não há Series Cadastradas");
             return view;
         }
-        trainingHistory = getAllTrainingHistory();
+        lastTrainingHistory = getAllTrainingHistory();
 
-        if (trainingHistory.isEmpty()) {
+        if (lastTrainingHistory == null) {
             currentSerie = series.get(0);
         } else {
-            HistoryModel history = trainingHistory.get(0);
-
             for (int i = 0; i < series.size(); i++) {
-                if (history.getSerieId().equals(series.get(i).getId())) {
-                    if (history.getDateFormatted().equals(dateTextView.getText().toString())) {
+                if (lastTrainingHistory.getSerieId().equals(series.get(i).getId())) {
+                    if (lastTrainingHistory.getDateFormatted().equals(dateTextView.getText().toString())) {
                         currentSerie = series.get(i);
                     } else {
                         currentSerie = series.get(i + 1);
@@ -154,9 +147,9 @@ public class HistoryFragment extends Fragment {
         }
     }
 
-    // Review (It's necessary to get All training data or only the last?
-    private List<HistoryModel> getAllTrainingHistory() {
+    private HistoryModel getAllTrainingHistory() {
         List<HistoryModel> trainingHistory = historyRepository.getAll();
+        if (trainingHistory.isEmpty()) return null;
 
         Comparator<HistoryModel> comparatorTrainingHistoryDate = new Comparator<HistoryModel>() {
             @Override
@@ -166,7 +159,8 @@ public class HistoryFragment extends Fragment {
         };
 
         trainingHistory.sort(comparatorTrainingHistoryDate);
-        return trainingHistory;
+
+        return trainingHistory.get(0);
     }
 
     private void setCurrentDate() {
@@ -215,14 +209,14 @@ public class HistoryFragment extends Fragment {
                 TextView muscleTextView = exerciseCard.findViewById(R.id.muscleTextView);
                 TextView seriesTextView = exerciseCard.findViewById(R.id.seriesTextView);
                 TextView repetitionsTextView = exerciseCard.findViewById(R.id.repetitionsTextView);
+                TextView weightTextView = exerciseCard.findViewById(R.id.weightTextView);
 
                 exerciseTextView.setText(exercise.getName());
                 muscleTextView.setText(exercise.getMuscle());
-
-                String series = exercise.getSeriesNumber().toString();
-                if (!series.equals("1")) seriesTextView.setText(series + " x");
-
+                seriesTextView.setText(exercise.getSeriesNumber() > 1 ? exercise.getSeriesNumber() + " x" : "");
                 repetitionsTextView.setText(exercise.getQuantity() + " " + exercise.getMeasure());
+                weightTextView.setText(exercise.getWeight() != 0 ? exercise.getWeight() + " Kg" : "");
+
                 exercisesLinearLayout.addView(exerciseCard);
             });
         }

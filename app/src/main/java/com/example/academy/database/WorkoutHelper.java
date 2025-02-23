@@ -9,5 +9,4 @@ public class WorkoutHelper {
             " (" + COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
             COLUMN_DATE + " TEXT UNIQUE);";
 
-
 }
