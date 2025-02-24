@@ -9,10 +9,11 @@ public class ExerciseModel {
     private String muscle;
     private Integer sequence = 0;
     private String observation;
+    private Integer weight;
     private Long serieId;
 
     public ExerciseModel(Long id, String name, Integer series_number, String measure, Integer quantity,
-                         String muscle, Integer sequence, String observation, Long serieId) {
+                         String muscle, Integer sequence, String observation, Integer weight, Long serieId) {
         setId(id);
         setName(name);
         setSeriesNumber(series_number);
@@ -21,6 +22,7 @@ public class ExerciseModel {
         setMuscle(muscle);
         setSequence(sequence);
         setObservation(observation);
+        setWeight(weight);
         setSerieId(serieId);
     }
 
@@ -86,6 +88,14 @@ public class ExerciseModel {
 
     public void setSerieId(Long serieId) {
         this.serieId = serieId;
+    }
+
+    public Integer getWeight() {
+        return weight;
+    }
+
+    public void setWeight(Integer weight) {
+        this.weight = weight;
     }
 
     public Integer getSeriesNumber() {

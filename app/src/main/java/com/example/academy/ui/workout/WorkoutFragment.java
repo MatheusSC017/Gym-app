@@ -285,12 +285,13 @@ public class WorkoutFragment extends Fragment {
         TextView muscleTextView = exerciseCard.findViewById(R.id.muscleTextView);
         TextView seriesTextView = exerciseCard.findViewById(R.id.seriesTextView);
         TextView repetitionsTextView = exerciseCard.findViewById(R.id.repetitionsTextView);
-
+        TextView weightTextView = exerciseCard.findViewById(R.id.weightTextView);
 
         exerciseTextView.setText(exercise.getName());
         muscleTextView.setText(exercise.getMuscle());
-        if (exercise.getSeriesNumber() > 1) seriesTextView.setText(exercise.getSeriesNumber() + " x");
+        seriesTextView.setText(exercise.getSeriesNumber() > 1 ? exercise.getSeriesNumber() + " x" : "");
         repetitionsTextView.setText(exercise.getQuantity() + " " + exercise.getMeasure());
+        weightTextView.setText(exercise.getWeight() != 0 ? exercise.getWeight() + " Kg" : "");
 
         layout.addView(exerciseCard);
     }

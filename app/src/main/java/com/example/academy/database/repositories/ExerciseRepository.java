@@ -30,6 +30,7 @@ public class ExerciseRepository {
         contentValues.put(ExerciseHelper.COLUMN_QUANTITY, exercise.getQuantity());
         contentValues.put(ExerciseHelper.COLUMN_MUSCLE, exercise.getMuscle());
         contentValues.put(ExerciseHelper.COLUMN_OBSERVATION, exercise.getObservation());
+        contentValues.put(ExerciseHelper.COLUMN_WEIGHT, exercise.getWeight());
         contentValues.put(ExerciseHelper.COLUMN_SERIE_ID, exercise.getSerieId());
 
         Long result = sqLiteDatabase.insert(ExerciseHelper.TABLE_NAME, null, contentValues);
@@ -53,6 +54,7 @@ public class ExerciseRepository {
         contentValues.put(ExerciseHelper.COLUMN_MUSCLE, exercise.getMuscle());
         contentValues.put(ExerciseHelper.COLUMN_SEQUENCE, exercise.getSequence());
         contentValues.put(ExerciseHelper.COLUMN_OBSERVATION, exercise.getObservation());
+        contentValues.put(ExerciseHelper.COLUMN_WEIGHT, exercise.getWeight());
 
         int result = sqLiteDatabase.update(ExerciseHelper.TABLE_NAME, contentValues,
                 ExerciseHelper.COLUMN_ID + "=?", new String[]{String.valueOf(exerciseId)});
@@ -85,7 +87,7 @@ public class ExerciseRepository {
                 do {
                     ExerciseModel exercise = new ExerciseModel(cursor.getLong(0), cursor.getString(1),
                             cursor.getInt(2), cursor.getString(3), cursor.getInt(4), cursor.getString(5),
-                            cursor.getInt(6), cursor.getString(7), cursor.getLong(8));
+                            cursor.getInt(6), cursor.getString(7), cursor.getInt(8), cursor.getLong(9));
                     exercisesList.add(exercise);
                 } while (cursor.moveToNext());
             }

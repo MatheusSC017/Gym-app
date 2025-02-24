@@ -227,7 +227,7 @@
                         android:layout_width="48dp"
                         android:layout_height="48dp"
                         android:background="@android:drawable/ic_input_add"
-                        android:backgroundTint="@color/black"
+                        style="@style/DrawableButtonStyle"
                         app:backgroundTint="@null"
                         app:drawableTint="@null" />
 
@@ -282,7 +282,7 @@
                         android:layout_width="48dp"
                         android:layout_height="48dp"
                         android:background="@android:drawable/ic_input_add"
-                        android:backgroundTint="@color/black"
+                        style="@style/DrawableButtonStyle"
                         app:backgroundTint="@null"
                         app:drawableTint="@null" />
 
@@ -313,28 +313,22 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent">
 
-            <Button
+            <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/returnButton"
-                style="@style/StandardButtonStyle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Voltar"
-                app:backgroundTint="@null"
-                app:drawableTint="@null" />
+                android:text="Voltar"/>
 
             <Space
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1" />
 
-            <Button
+            <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/saveButton"
-                style="@style/StandardButtonStyle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Salvar"
-                app:backgroundTint="@null"
-                app:drawableTint="@null" />
+                android:text="Salvar" />
 
         </LinearLayout>
 
