@@ -106,24 +106,18 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/observationEditText">
 
-        <Button
+        <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/cancelButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Cancelar"
-            app:backgroundTint="@null"
-            app:drawableTint="@null"
-            style="@style/StandardButtonStyle" />
+            android:text="Cancelar" />
 
-        <Button
+        <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/submitButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
-            android:text="Enviar"
-            app:backgroundTint="@null"
-            app:drawableTint="@null"
-            style="@style/StandardButtonStyle" />
+            android:text="Enviar" />
 
     </LinearLayout>
 

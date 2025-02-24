@@ -180,7 +180,7 @@
             android:id="@+id/optionsLayout"
             android:layout_width="match_parent"
             android:layout_height="48dp"
-            android:background="@color/secondary"
+            android:background="@color/primaryVariant"
             android:gravity="center_vertical"
             android:orientation="horizontal"
             android:paddingLeft="32dp"
@@ -194,7 +194,7 @@
                 android:layout_width="48dp"
                 android:layout_height="48dp"
                 android:background="@android:drawable/ic_menu_add"
-                android:backgroundTint="@color/black"
+                android:backgroundTint="@color/text"
                 app:backgroundTint="@null"
                 app:drawableTint="@null" />
 
@@ -208,7 +208,7 @@
                 android:layout_width="48dp"
                 android:layout_height="48dp"
                 android:background="@android:drawable/ic_menu_edit"
-                android:backgroundTint="@color/black"
+                android:backgroundTint="@color/text"
                 app:backgroundTint="@null"
                 app:drawableTint="@null" />
 
@@ -222,7 +222,7 @@
                 android:layout_width="48dp"
                 android:layout_height="48dp"
                 android:background="@android:drawable/ic_menu_delete"
-                android:backgroundTint="@color/black"
+                android:backgroundTint="@color/text"
                 app:backgroundTint="@null"
                 app:drawableTint="@null" />
 
