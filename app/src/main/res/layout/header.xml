@@ -3,10 +3,12 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     style="@style/ThemeOverlay.AppCompat.Dark"
     android:layout_width="match_parent"
-    android:layout_height="128dp"
+    android:layout_height="wrap_content"
     android:background="@color/primaryVariant"
     android:gravity="center_vertical"
-    android:padding="25dp">
+    android:paddingTop="64dp"
+    android:paddingLeft="32dp"
+    android:paddingBottom="32dp">
 
     <ImageView
         android:id="@+id/imageView2"

@@ -13,9 +13,7 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:layout_marginTop="24dp"
-        android:layout_marginBottom="24dp">
+        android:orientation="vertical">
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
@@ -23,7 +21,9 @@
             android:layout_height="wrap_content"
             android:background="@color/primaryVariant"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
+            app:layout_constraintTop_toTopOf="parent"
+            android:paddingTop="48dp"
+            android:paddingBottom="16dp">
 
         </androidx.appcompat.widget.Toolbar>
 
@@ -33,7 +33,8 @@
             app:layout_constraintTop_toBottomOf="@+id/toolbar"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent">
+            app:layout_constraintEnd_toEndOf="parent"
+            android:paddingBottom="64dp">
             <FrameLayout
                 android:id="@+id/container"
                 android:layout_width="match_parent"

@@ -2,5 +2,6 @@
     <style name="Base.Theme.Academy" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="android:textColor">@color/text</item>
         <item name="android:buttonStyle">@style/StandardButtonStyle</item>
+        <item name="android:windowActionBarOverlay">false</item>
     </style>
 </resources>

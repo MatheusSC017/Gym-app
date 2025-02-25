@@ -171,6 +171,7 @@ public class RegisterWorkoutFragment extends Fragment {
         Long serieId = seriesIds.keySet().stream().collect(Collectors.toList()).get(position);
         List<ExerciseModel> exercisesList = exerciseRepository.getAll(serieId);
 
+        exercises.clear();
         exerciseLinearLayout.removeAllViews();
         for (ExerciseModel exercise:exercisesList) {
             exercises.put(exercise.getId(), exercise);
@@ -206,25 +207,27 @@ public class RegisterWorkoutFragment extends Fragment {
 
     private void addExercise(View dialogView, Long serieId) {
         EditText exerciseEditText = dialogView.findViewById(R.id.exerciseEditText);
+        String exerciseName = exerciseEditText.getText().toString();
         EditText seriesEditText = dialogView.findViewById(R.id.seriesEditText);
+        int seriesNumber = seriesEditText.getText().toString().equals("") ? 0 : Integer.valueOf(seriesEditText.getText().toString());
         Spinner typeSpinner = dialogView.findViewById(R.id.typeSpinner);
+        String measure = typeSpinner.getSelectedItem() == null ? null : typeSpinner.getSelectedItem().toString();
         EditText quantityEditText = dialogView.findViewById(R.id.quantityEditText);
+        int quantity = quantityEditText.getText().toString().equals("") ? 0 : Integer.valueOf(quantityEditText.getText().toString());
         EditText muscleEditText = dialogView.findViewById(R.id.muscleEditText);
+        String muscle = muscleEditText.getText().toString();
         EditText weightEditText = dialogView.findViewById(R.id.weightEditText);
+        int weight = weightEditText.getText().toString().equals("") ? 0 : Integer.valueOf(weightEditText.getText().toString());
         EditText observationEditText = dialogView.findViewById(R.id.observationEditText);
+        String observation = observationEditText.getText().toString();
 
-        if (exerciseEditText.getText().length() == 0 ||
-                seriesEditText.getText().length() == 0 ||
-                typeSpinner.getSelectedItem() == null ||
-                quantityEditText.getText().length() == 0) {
+        if (exerciseName.isEmpty() || seriesNumber <= 0 || typeSpinner.getSelectedItem() == null || quantity <= 0) {
             Toast.makeText(getContext(), "Campos obrigatórios (Exercício, Series, Tipo e Quantidade)", Toast.LENGTH_LONG).show();
             return;
         }
 
-        ExerciseModel exercise = new ExerciseModel(null, exerciseEditText.getText().toString(), Integer.valueOf(seriesEditText.getText().toString()),
-                typeSpinner.getSelectedItem().toString(), Integer.valueOf(quantityEditText.getText().toString()),
-                muscleEditText.getText().toString(), 0, observationEditText.getText().toString(),
-                Integer.valueOf(weightEditText.getText().toString()), serieId);
+        ExerciseModel exercise = new ExerciseModel(null, exerciseName, seriesNumber, measure,
+                quantity, muscle, 0, observation, weight, serieId);
 
         exercise = exerciseRepository.add(exercise);
 
@@ -297,12 +300,14 @@ public class RegisterWorkoutFragment extends Fragment {
         saveButton.setOnClickListener(event -> {
             String oldExerciseName = exerciseModel.getName();
 
+            int weight = weightEditText.getText().toString().equals("") ? 0 : Integer.valueOf(weightEditText.getText().toString());
+
             exerciseModel.setName(exerciseEditText.getText().toString());
             exerciseModel.setSeriesNumber(Integer.valueOf(seriesEditText.getText().toString()));
             exerciseModel.setMeasure(typeSpinner.getSelectedItem().toString());
             exerciseModel.setQuantity(Integer.valueOf(quantityEditText.getText().toString()));
             exerciseModel.setMuscle(muscleEditText.getText().toString());
-            exerciseModel.setWeight(Integer.valueOf(weightEditText.getText().toString()));
+            exerciseModel.setWeight(weight);
             exerciseModel.setObservation(observationEditText.getText().toString());
 
             editExercise(oldExerciseName, exerciseModel);
