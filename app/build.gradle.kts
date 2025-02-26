@@ -3,11 +3,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.academy"
+    namespace = "com.matheus.academy"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.example.academy"
+        applicationId = "com.matheus.academy"
         minSdk = 24
         targetSdk = 34
         versionCode = 1
