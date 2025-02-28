@@ -65,6 +65,22 @@ public class HistoryFragment extends Fragment {
         dateTextView = view.findViewById(R.id.dateTextView);
         setCurrentDate();
 
+        Button selectDateButton = view.findViewById(R.id.selectDateButton);
+        selectDateButton.setOnClickListener(event -> trainingCalendarView.setVisibility(View.VISIBLE));
+
+        trainingCalendarView = view.findViewById(R.id.trainingCalendarView);
+        trainingCalendarView.setVisibility(View.GONE);
+        trainingCalendarView.setOnDateChangeListener((calendarView, year, month, day) -> {
+            String currentTrainingDate = twoDecimalFormatter.format(day) + "/" + twoDecimalFormatter.format(month + 1) + "/" + year;
+            selectTraining(currentTrainingDate);
+
+            dateTextView.setText(currentTrainingDate);
+            trainingCalendarView.setVisibility(View.GONE);
+        });
+
+        Button saveButton = view.findViewById(R.id.saveButton);
+        saveButton.setOnClickListener(event -> saveHistory());
+
         series = getWorkoutSeries();
         if (series.isEmpty()) {
             serieTextView.setText("Não há Series Cadastradas");
@@ -90,25 +106,6 @@ public class HistoryFragment extends Fragment {
 
         serieTextView.setText(currentSerie.getName());
         setExercises(currentSerie.getId());
-
-        Button selectDateButton = view.findViewById(R.id.selectDateButton);
-        selectDateButton.setOnClickListener(event -> trainingCalendarView.setVisibility(View.VISIBLE));
-
-        trainingCalendarView = view.findViewById(R.id.trainingCalendarView);
-        trainingCalendarView.setVisibility(View.GONE);
-        trainingCalendarView.setOnDateChangeListener(new CalendarView.OnDateChangeListener() {
-            @Override
-            public void onSelectedDayChange(@NonNull CalendarView calendarView, int year, int month, int day) {
-                String currentTrainingDate = twoDecimalFormatter.format(day) + "/" + twoDecimalFormatter.format(month + 1) + "/" + year;
-                selectTraining(currentTrainingDate);
-
-                dateTextView.setText(currentTrainingDate);
-                trainingCalendarView.setVisibility(View.GONE);
-            }
-        });
-
-        Button saveButton = view.findViewById(R.id.saveButton);
-        saveButton.setOnClickListener(event -> saveHistory());
 
         return view;
     }
@@ -174,6 +171,10 @@ public class HistoryFragment extends Fragment {
         LocalDate today = LocalDate.now();
         String todayDate = twoDecimalFormatter.format(today.getDayOfMonth()) + "/" + twoDecimalFormatter.format(today.getMonthValue()) + "/" + today.getYear();
 
+        if (series.isEmpty()) {
+            serieTextView.setText("Treinamento não encontrado");
+            return;
+        }
 
         exercisesLinearLayout.removeAllViews();
         if (history != null) {

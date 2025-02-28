@@ -1,4 +1,4 @@
-package com.example.academy.utils;
+package com.matheus.academy.utils;
 
 public class Utils {
     public static String getLetter(int number) {

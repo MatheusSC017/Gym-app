@@ -1,4 +1,4 @@
-package com.example.academy.view;
+package com.matheus.academy.view;
 
 import android.content.Context;
 import android.text.Editable;

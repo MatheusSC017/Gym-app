@@ -7,11 +7,7 @@ import android.database.sqlite.SQLiteDatabase;
 
 import com.matheus.academy.database.DatabaseManager;
 import com.matheus.academy.database.FoldHelper;
-import com.matheus.academy.database.MeasureHelper;
-import com.matheus.academy.database.WorkoutHelper;
-import com.matheus.academy.models.ExerciseModel;
 import com.matheus.academy.models.FoldModel;
-import com.matheus.academy.models.MeasureModel;
 
 import java.util.ArrayList;
 import java.util.List;

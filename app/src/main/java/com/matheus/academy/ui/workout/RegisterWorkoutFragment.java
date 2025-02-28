@@ -6,7 +6,7 @@ import com.matheus.academy.database.repositories.ExerciseRepository;
 import com.matheus.academy.database.repositories.SerieRepository;
 import com.matheus.academy.models.ExerciseModel;
 import com.matheus.academy.models.SerieModel;
-import com.example.academy.utils.Utils;
+import com.matheus.academy.utils.Utils;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;

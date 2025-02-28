@@ -18,8 +18,8 @@ import com.matheus.academy.database.repositories.WorkoutRepository;
 import com.matheus.academy.models.ExerciseModel;
 import com.matheus.academy.models.SerieModel;
 import com.matheus.academy.models.WorkoutModel;
-import com.example.academy.utils.Utils;
-import com.example.academy.view.EditTextDate;
+import com.matheus.academy.utils.Utils;
+import com.matheus.academy.view.EditTextDate;
 
 import java.text.DecimalFormat;
 import java.time.LocalDate;

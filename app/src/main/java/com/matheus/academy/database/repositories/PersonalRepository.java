@@ -6,7 +6,6 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
 import com.matheus.academy.database.DatabaseManager;
-import com.matheus.academy.database.MeasureHelper;
 import com.matheus.academy.database.PersonalHelper;
 import com.matheus.academy.models.PersonalModel;
 

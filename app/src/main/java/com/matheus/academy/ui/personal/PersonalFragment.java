@@ -18,7 +18,7 @@ import com.matheus.academy.database.repositories.PersonalRepository;
 import com.matheus.academy.models.FoldModel;
 import com.matheus.academy.models.MeasureModel;
 import com.matheus.academy.models.PersonalModel;
-import com.example.academy.view.EditTextDate;
+import com.matheus.academy.view.EditTextDate;
 
 import java.text.DecimalFormat;
 import java.time.LocalDate;
