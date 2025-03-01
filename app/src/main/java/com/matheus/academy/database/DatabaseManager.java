@@ -3,15 +3,27 @@ package com.matheus.academy.database;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.os.Environment;
+import android.widget.Toast;
 
 import androidx.annotation.Nullable;
+
+import com.matheus.academy.R;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
 
 public class DatabaseManager extends SQLiteOpenHelper {
     public static final String DATABASE_NAME = "Academy.db";
     public static final int DATABASE_VERSION = 5;
+    
+    private Context context;
 
     public DatabaseManager(@Nullable Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
+        this.context = context;
     }
 
     @Override
@@ -47,5 +59,61 @@ public class DatabaseManager extends SQLiteOpenHelper {
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + MeasureHelper.TABLE_NAME);
         sqLiteDatabase.execSQL("DROP TABLE IF EXISTS " + HistoryHelper.TABLE_NAME);
         onCreate(sqLiteDatabase);
+    }
+
+    public void backup(String outFileName) {
+
+        final String inFileName = context.getDatabasePath(DATABASE_NAME).toString();
+
+        try {
+            File dbFile = new File(inFileName);
+            FileInputStream fis = new FileInputStream(dbFile);
+
+            File backupFile = new File(Environment.getExternalStorageDirectory() + File.separator + context.getResources().getString(R.string.app_name), outFileName);
+            OutputStream output = new FileOutputStream(backupFile);
+            
+            byte[] buffer = new byte[1024];
+            int length;
+            while ((length = fis.read(buffer)) > 0) {
+                output.write(buffer, 0, length);
+            }
+            
+            output.flush();
+            output.close();
+            fis.close();
+
+            Toast.makeText(context, "Backup Completed", Toast.LENGTH_SHORT).show();
+
+        } catch (Exception e) {
+            Toast.makeText(context, "Unable to backup database. Retry", Toast.LENGTH_SHORT).show();
+            e.printStackTrace();
+        }
+    }
+
+    public void importDB(String inFileName) {
+
+        final String outFileName = context.getDatabasePath(DATABASE_NAME).toString();
+
+        try {
+            File dbFile = new File(inFileName);
+            FileInputStream fis = new FileInputStream(dbFile);
+
+            OutputStream output = new FileOutputStream(outFileName);
+
+            byte[] buffer = new byte[1024];
+            int length;
+            while ((length = fis.read(buffer)) > 0) {
+                output.write(buffer, 0, length);
+            }
+
+            output.flush();
+            output.close();
+            fis.close();
+
+            Toast.makeText(context, "Import Completed", Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            Toast.makeText(context, "Unable to import database. Retry", Toast.LENGTH_SHORT).show();
+            e.printStackTrace();
+        }
     }
 }

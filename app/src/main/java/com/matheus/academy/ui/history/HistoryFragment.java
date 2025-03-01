@@ -84,28 +84,27 @@ public class HistoryFragment extends Fragment {
         series = getWorkoutSeries();
         if (series.isEmpty()) {
             serieTextView.setText("Não há Series Cadastradas");
-            return view;
-        }
-        lastTrainingHistory = getAllTrainingHistory();
-
-        if (lastTrainingHistory == null) {
-            currentSerie = series.get(0);
         } else {
-            for (int i = 0; i < series.size(); i++) {
-                if (lastTrainingHistory.getSerieId().equals(series.get(i).getId())) {
-                    if (lastTrainingHistory.getDateFormatted().equals(dateTextView.getText().toString())) {
-                        currentSerie = series.get(i);
-                    } else {
-                        currentSerie = series.get(i + 1);
+            lastTrainingHistory = getAllTrainingHistory();
+
+            if (lastTrainingHistory == null) {
+                currentSerie = series.get(0);
+            } else {
+                for (int i = 0; i < series.size(); i++) {
+                    if (lastTrainingHistory.getSerieId().equals(series.get(i).getId())) {
+                        if (lastTrainingHistory.getDateFormatted().equals(dateTextView.getText().toString())) {
+                            currentSerie = series.get(i);
+                        } else {
+                            currentSerie = series.get(i + 1);
+                        }
+                        break;
                     }
-                    break;
                 }
             }
 
+            serieTextView.setText(currentSerie.getName());
+            setExercises(currentSerie.getId());
         }
-
-        serieTextView.setText(currentSerie.getName());
-        setExercises(currentSerie.getId());
 
         return view;
     }
