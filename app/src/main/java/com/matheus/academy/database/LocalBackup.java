@@ -7,7 +7,7 @@ import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.matheus.academy.MainActivity;
+import com.matheus.academy.ui.MainActivity;
 import com.matheus.academy.Permissions;
 import com.matheus.academy.R;
 

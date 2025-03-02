@@ -1,4 +1,4 @@
-package com.matheus.academy.database;
+package com.matheus.academy.database.helpers;
 
 public class ExerciseHelper {
     public static final String TABLE_NAME = "exercises";

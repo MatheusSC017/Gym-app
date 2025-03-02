@@ -9,6 +9,13 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 
 import com.matheus.academy.R;
+import com.matheus.academy.database.helpers.ExerciseHelper;
+import com.matheus.academy.database.helpers.FoldHelper;
+import com.matheus.academy.database.helpers.HistoryHelper;
+import com.matheus.academy.database.helpers.MeasureHelper;
+import com.matheus.academy.database.helpers.PersonalHelper;
+import com.matheus.academy.database.helpers.SerieHelper;
+import com.matheus.academy.database.helpers.WorkoutHelper;
 
 import java.io.File;
 import java.io.FileInputStream;
