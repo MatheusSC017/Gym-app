@@ -1,4 +1,4 @@
-package com.matheus.academy.database;
+package com.matheus.academy.database.helpers;
 
 public class HistoryHelper {
     public static final String TABLE_NAME = "history";

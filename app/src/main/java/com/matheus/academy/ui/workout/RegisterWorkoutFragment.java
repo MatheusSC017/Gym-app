@@ -1,6 +1,6 @@
 package com.matheus.academy.ui.workout;
 
-import com.matheus.academy.MainActivity;
+import com.matheus.academy.ui.MainActivity;
 import com.matheus.academy.R;
 import com.matheus.academy.database.repositories.ExerciseRepository;
 import com.matheus.academy.database.repositories.SerieRepository;

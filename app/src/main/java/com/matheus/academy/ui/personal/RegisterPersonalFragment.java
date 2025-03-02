@@ -9,7 +9,7 @@ import android.widget.*;
 
 import androidx.fragment.app.Fragment;
 
-import com.matheus.academy.MainActivity;
+import com.matheus.academy.ui.MainActivity;
 import com.matheus.academy.R;
 import com.matheus.academy.database.repositories.FoldRepository;
 import com.matheus.academy.database.repositories.MeasureRepository;

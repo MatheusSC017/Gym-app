@@ -6,8 +6,8 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
 import com.matheus.academy.database.DatabaseManager;
-import com.matheus.academy.database.ExerciseHelper;
-import com.matheus.academy.database.SerieHelper;
+import com.matheus.academy.database.helpers.ExerciseHelper;
+import com.matheus.academy.database.helpers.SerieHelper;
 import com.matheus.academy.models.ExerciseModel;
 
 import java.util.ArrayList;

@@ -8,7 +8,7 @@
     android:id="@+id/drawerLayout"
     android:fitsSystemWindows="true"
     android:background="@drawable/bg_running_500"
-    tools:context=".MainActivity">
+    tools:context=".ui.MainActivity">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"

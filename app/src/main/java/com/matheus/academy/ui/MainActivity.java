@@ -1,4 +1,4 @@
-package com.matheus.academy;
+package com.matheus.academy.ui;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
@@ -16,6 +16,7 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
+import com.matheus.academy.R;
 import com.matheus.academy.database.DatabaseManager;
 import com.matheus.academy.database.LocalBackup;
 import com.matheus.academy.ui.finance.FinanceFragment;
