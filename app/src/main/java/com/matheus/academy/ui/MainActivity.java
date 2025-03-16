@@ -19,7 +19,6 @@ import androidx.fragment.app.FragmentTransaction;
 import com.matheus.academy.R;
 import com.matheus.academy.database.DatabaseManager;
 import com.matheus.academy.database.LocalBackup;
-import com.matheus.academy.ui.finance.FinanceFragment;
 import com.matheus.academy.ui.history.HistoryFragment;
 import com.matheus.academy.ui.personal.PersonalFragment;
 import com.matheus.academy.ui.workout.WorkoutFragment;
@@ -56,8 +55,6 @@ public class MainActivity extends AppCompatActivity {
                     loadFragment(new PersonalFragment());
                 } else if (item.getItemId() == R.id.workouts) {
                     loadFragment(new WorkoutFragment());
-                } else if (item.getItemId() == R.id.finance) {
-                    loadFragment(new FinanceFragment());
                 } else if (item.getItemId() == R.id.upload) {
                     LocalDate today = LocalDate.now();
                     localBackup.performBackup(db, "workouts_backup_");

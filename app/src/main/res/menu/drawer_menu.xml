@@ -15,10 +15,6 @@
             android:icon="@drawable/ic_haltere_24"
             android:title="Treinos">
         </item>
-        <item android:id="@+id/finance"
-            android:icon="@drawable/ic_cash_24"
-            android:title="Finanças">
-        </item>
     </group>
     <group >
         <item android:id="@+id/upload"
